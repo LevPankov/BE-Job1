@@ -1,0 +1,33 @@
+services: # Секция, где мы объявляем все наши сервисы (контейнеры)
+  my-app: # Наш первый сервис - NestJS приложение
+    build: . # Собираем образ из Dockerfile в текущей директории (.)
+    container_name: nest-api-container # Имя для удобства
+    ports:
+      - "3000:3000" # Пробрасываем порт с локальной машины (слева) в порт контейнера (справа)
+    environment: # Переменные окружения для контейнера с приложением
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/mydb
+      # Формат: postgresql://<username>:<password>@<host>:<port>/<database_name>
+      # Хост 'db' - это имя другого сервиса в этом же файле docker-compose.yml!
+    depends_on:
+      - db # Говорим Compose, что этот сервис зависит от сервиса 'db'. Он запустится только после него.
+    volumes:
+      - .:/app # Монтируем текущую папку проекта в рабочую директорию контейнера (для разработки)
+      - /app/node_modules # Делаем исключение для node_modules, чтобы не затереть их локальной версией
+    # Для разработки также полезно использовать команду, которая перезапускает приложение при изменениях
+    # command: npm run start:dev
+
+  db: # Наш второй сервис - база данных PostgreSQL
+    image: postgres:15-alpine # Используем официальный образ Postgres на Alpine
+    container_name: postgres-container
+    environment: # Критически важные переменные для первоначальной настройки Postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: mydb
+    ports:
+      - "5432:5432" # Пробрасываем порт БД, чтобы можно было подключиться с хоста (например, DBeaver, pgAdmin)
+    volumes:
+      - postgres_data:/var/lib/postgresql/data # Сохраняем данные БД в именованном томе, чтобы они не пропали после остановки контейнера
+
+# Объявляем тома, которые используются нашими сервисами
+volumes:
+  postgres_data: # Именованный том для хранения данных PostgreSQL
