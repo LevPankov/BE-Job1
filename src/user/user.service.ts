@@ -1,4 +1,4 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { Database, NewUser, UserUpdate } from '../DB/types';
 import { Kysely } from 'kysely';
 
@@ -27,6 +27,20 @@ export class UserService {
         return user;
     }
     
+    async getByLogin(login : string) {
+        const user = await this.db
+        .selectFrom("users")
+        .selectAll()
+        .where('login', '=', login)
+        .executeTakeFirst();
+    
+        if (!user) {
+          throw new NotFoundException('User with ID ${id} not found');
+        }
+    
+        return user;
+    }
+    
     async isInDb(login, password) {
         const user = await this.db
         .selectFrom("users")
@@ -41,6 +55,9 @@ export class UserService {
     }
 
     async insert(data: NewUser) {
+        if (!data.login || !data.email || !data.password || !data.age)
+            throw new BadRequestException("Not enough data");
+
         const result = await this.db
         .insertInto('users')
         .values(data)
@@ -50,7 +67,7 @@ export class UserService {
           throw new Error('Not found id ${result}');
         }
     
-        return Number(result);
+        return "Success!";
     }
     
     async updateById(id: number, data: UserUpdate) {

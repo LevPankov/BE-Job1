@@ -2,13 +2,14 @@ import { Controller, Get, Post, Body, Param, Delete, Patch, ParseIntPipe, Query 
 import { UserService } from './user.service';
 import { CreateUserDto } from '../Dto/create-user.dto';
 
+//God mod
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Post('reg')
   async createUser(@Body() createUserDto: CreateUserDto) {
-    this.userService.insert(createUserDto);
+    return this.userService.insert(createUserDto);
   }
 
   @Post('auth')
