@@ -1,10 +1,15 @@
-import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { Database, NewUser, UserUpdate } from '../DB/types';
 import { Kysely } from 'kysely';
+import { CreateUserDto } from 'src/Dto/create-user.dto';
+import { PasswordService } from './password.service';
 
 @Injectable()
 export class UserService {
-    constructor(@Inject('KYSELY_DB') private readonly db: Kysely<Database>, ) {}
+    constructor(
+        private readonly passwordService: PasswordService,
+        @Inject('KYSELY_DB') private readonly db: Kysely<Database>,
+    ) {}
     
     async getAll() {
         return await this.db
@@ -42,25 +47,33 @@ export class UserService {
     }
     
     async isInDb(login, password) {
+        const hashPassword = await this.passwordService.hashPassword(password);
+
         const user = await this.db
         .selectFrom("users")
         .selectAll()
         .where(({ eb, and }) => and([
             eb('login', '=', login),
-            eb('password', '=', password)
+            eb('password_hash', '=', hashPassword)
         ]))
         .executeTakeFirst();
 
         return user != undefined;
     }
 
-    async insert(data: NewUser) {
-        if (!data.login || !data.email || !data.password || !data.age)
-            throw new BadRequestException("Not enough data");
-
+    async insert(data: CreateUserDto) {
+        const hashPassword = await this.passwordService.hashPassword(data.password);
+        const newUser: NewUser = {
+            login: data.login,
+            email: data.email,
+            password_hash: hashPassword,
+            age: data.age,
+            description: data.description
+        }
+        
         const result = await this.db
         .insertInto('users')
-        .values(data)
+        .values(newUser)
         .executeTakeFirst();
     
         if (!result){
@@ -70,18 +83,38 @@ export class UserService {
         return "Success!";
     }
     
-    async updateById(id: number, data: UserUpdate) {
+    async updateById(id: number, data: Partial<CreateUserDto>) {
+        const userUpdate: UserUpdate = {
+            login: data.login,
+            email: data.email,
+            age: data.age,
+            description: data.description
+        };
+        if (data.password) {
+            userUpdate.password_hash = await this.passwordService.hashPassword(data.password);
+        }
+
         await this.db
         .updateTable('users')
-        .set(data)
+        .set(userUpdate)
         .where('id', '=', id)
         .execute();
     }
 
-    async updateByLogin(login: string, data: UserUpdate) {
+    async updateByLogin(login: string, data: Partial<CreateUserDto>) {
+        const userUpdate: UserUpdate = {
+            login: data.login,
+            email: data.email,
+            age: data.age,
+            description: data.description
+        };
+        if (data.password) {
+            userUpdate.password_hash = await this.passwordService.hashPassword(data.password);
+        }
+
         await this.db
         .updateTable('users')
-        .set(data)
+        .set(userUpdate)
         .where('login', '=', login)
         .execute();
     }

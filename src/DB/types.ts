@@ -10,7 +10,7 @@ export interface UserTable {
     id: Generated<number>;
     login: string;
     email: string;
-    password: string;
+    password_hash: string;
     age: number;
     description: string | null;
 }

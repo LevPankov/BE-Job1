@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Delete, Patch, ParseIntPipe, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, Patch, ParseIntPipe, Query, UsePipes, ValidationPipe } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from '../Dto/create-user.dto';
 
@@ -7,6 +7,8 @@ import { CreateUserDto } from '../Dto/create-user.dto';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
+  
+  @UsePipes(new ValidationPipe())
   @Post('reg')
   async createUser(@Body() createUserDto: CreateUserDto) {
     return this.userService.insert(createUserDto);
