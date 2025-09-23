@@ -1,4 +1,4 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { Database, NewUser, UserUpdate } from '../DB/types';
 import { Kysely } from 'kysely';
 import { CreateUserDto } from 'src/Dto/create-user.dto';
@@ -46,22 +46,21 @@ export class UserService {
         return user;
     }
     
-    async isInDb(login, password) {
-        const hashPassword = await this.passwordService.hashPassword(password);
-
+    async isInDb(login: string) {
         const user = await this.db
         .selectFrom("users")
-        .selectAll()
-        .where(({ eb, and }) => and([
-            eb('login', '=', login),
-            eb('password_hash', '=', hashPassword)
-        ]))
+        .select('id')
+        .where('login', '=', login)
         .executeTakeFirst();
 
         return user != undefined;
     }
 
     async insert(data: CreateUserDto) {
+        if (await this.isInDb(data.login)) {
+            throw new BadRequestException('This login already exists')
+        }
+
         const hashPassword = await this.passwordService.hashPassword(data.password);
         const newUser: NewUser = {
             login: data.login,
@@ -99,15 +98,24 @@ export class UserService {
         .set(userUpdate)
         .where('id', '=', id)
         .execute();
+    
+        return "Success!";
     }
 
     async updateByLogin(login: string, data: Partial<CreateUserDto>) {
+        if (!await this.isInDb(login)) {
+            throw new BadRequestException('Login is incorrect')
+        }
+        
         const userUpdate: UserUpdate = {
             login: data.login,
             email: data.email,
             age: data.age,
             description: data.description
         };
+        if (data.login && await this.isInDb(data.login)) {
+            throw new BadRequestException("You can't change login to this")
+        }
         if (data.password) {
             userUpdate.password_hash = await this.passwordService.hashPassword(data.password);
         }
@@ -117,6 +125,8 @@ export class UserService {
         .set(userUpdate)
         .where('login', '=', login)
         .execute();
+    
+        return "Success!";
     }
     
     async removeById(id: number) {
@@ -124,6 +134,8 @@ export class UserService {
         .deleteFrom("users")
         .where('id', '=', id)
         .execute();
+    
+        return "Success!";
     }
 
     async removeByLogin(login: string) {
@@ -131,5 +143,7 @@ export class UserService {
         .deleteFrom("users")
         .where('login', '=', login)
         .execute();
+    
+        return "Success!";
     }
 }

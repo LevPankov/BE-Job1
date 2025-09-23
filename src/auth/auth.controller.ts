@@ -1,6 +1,5 @@
-import { Body, Controller, Get, Post, Request, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Post, UsePipes, ValidationPipe } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { AuthGuard } from './auth.guard';
 import { UserService } from 'src/user/user.service';
 import { CreateUserDto } from 'src/Dto/create-user.dto';
 
@@ -20,12 +19,5 @@ export class AuthController {
     @Post('login')
     signIn(@Body() signInDto: Record<string, any>) {
         return this.authService.signIn(signInDto.login, signInDto.password);
-    }
-
-    @UseGuards(AuthGuard)
-    @Get('profile')
-    getpPofile(@Request() req) {
-        const login = req.user.login;
-        return this.userService.getByLogin(login);
     }
 }

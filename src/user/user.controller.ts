@@ -15,8 +15,8 @@ export class UserController {
   }
 
   @Post('auth')
-  async authentificate(@Body('login') login : string, @Body('password') password : string) {
-    return this.userService.isInDb(login, password);
+  async checkIsInDb(@Body('login') login : string) {
+    return this.userService.isInDb(login);
   }
 
   @Get('get/all')
@@ -37,11 +37,6 @@ export class UserController {
   @Patch('update/:id')
   async updateProfileById(@Param('id', ParseIntPipe) id: number, @Body() updateUserDto: Partial<CreateUserDto> ) {
     return this.userService.updateById(id, updateUserDto);
-  }
-
-  @Patch('update')
-  async updateProfileByLogin(@Body('login') login: string, @Body() updateUserDto: Partial<CreateUserDto> ) {
-    return this.userService.updateByLogin(login, updateUserDto);
   }
 
   @Delete('delete/:id')
