@@ -12,10 +12,8 @@ export class AuthService {
     ) {}
 
     async signIn(login: string, pass: string) {
-        const hashPassword = await this.passwordService.hashPassword(pass);
-
         const user = await this.userService.getByLogin(login);
-        if (user?.password_hash !== hashPassword) {
+        if (!await this.passwordService.validatePassword(pass, user.password_hash)) {
             throw new UnauthorizedException();
         }
 
