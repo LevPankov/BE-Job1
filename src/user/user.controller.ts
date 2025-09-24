@@ -21,12 +21,7 @@ export class UserController {
 
   @Get('get/all')
   async getAll() {
-    return this.userService.getAll();
-  }
-
-  @Get('get/my')
-  async getMyProfile() {
-    return "My profile";
+    return this.userService.getAll(-1);
   }
 
   @Get('get/:id')

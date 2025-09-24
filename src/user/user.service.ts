@@ -11,11 +11,25 @@ export class UserService {
         @Inject('KYSELY_DB') private readonly db: Kysely<Database>,
     ) {}
     
-    async getAll() {
+    async getAll(page: number) {
+        if (page == -1) {
+            return await this.db
+            .selectFrom("users")
+            .select(['login', 'email', 'age', 'description'])
+            .execute();
+        }
+
+        if (page < 1) {
+            throw new BadRequestException("Page numbering starts from 1")
+        }
+
+        const limit = 3;
         return await this.db
-        .selectFrom("users")
-        .selectAll()
-        .execute();
+            .selectFrom("users")
+            .select(['login', 'email', 'age', 'description'])
+            .offset((page - 1) * limit)
+            .limit(limit)
+            .execute();
     }
     
     async getById(id : number) {
