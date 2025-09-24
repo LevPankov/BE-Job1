@@ -122,14 +122,10 @@ export class UserService {
         }
         
         const userUpdate: UserUpdate = {
-            login: data.login,
             email: data.email,
             age: data.age,
             description: data.description
         };
-        if (data.login && await this.isInDb(data.login)) {
-            throw new BadRequestException("You can't change login to this")
-        }
         if (data.password) {
             userUpdate.password_hash = await this.passwordService.hashPassword(data.password);
         }

@@ -1,8 +1,10 @@
 import { Controller, Get, Post, Body, Param, Delete, Patch, ParseIntPipe, Query, UsePipes, ValidationPipe } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from '../Dto/create-user.dto';
+import { ApiTags } from '@nestjs/swagger';
 
 //God mod
+@ApiTags('Admin plays wtih DB (not from task, no documentation)')
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
