@@ -1,7 +1,7 @@
 import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { Database, NewUser, UserUpdate } from '../DB/types';
 import { Kysely } from 'kysely';
-import { CreateUserDto } from 'src/Dto/create-user.dto';
+import { CreateUserDto } from '../Dto/create-user.dto';
 import { PasswordService } from './password.service';
 
 @Injectable()
@@ -40,7 +40,7 @@ export class UserService {
         .executeTakeFirst();
     
         if (!user) {
-          throw new NotFoundException('User with ID ${id} not found');
+          throw new NotFoundException(`User with ID ${id} not found`);
         }
     
         return user;
@@ -54,7 +54,7 @@ export class UserService {
         .executeTakeFirst();
     
         if (!user) {
-          throw new NotFoundException('User with ID ${id} not found');
+          throw new NotFoundException(`User with login ${login} not found`);
         }
     
         return user;
@@ -72,7 +72,7 @@ export class UserService {
 
     async insert(data: CreateUserDto) {
         if (await this.isInDb(data.login)) {
-            throw new BadRequestException('This login already exists')
+            throw new BadRequestException(`Login ${data.login} is already exists`)
         }
 
         const hashPassword = await this.passwordService.hashPassword(data.password);
@@ -90,7 +90,7 @@ export class UserService {
         .executeTakeFirst();
     
         if (!result){
-          throw new Error('Not found id ${result}');
+          throw new Error(`Not found id ${result}`);
         }
     
         return "Success!";

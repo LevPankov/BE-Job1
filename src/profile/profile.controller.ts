@@ -1,8 +1,8 @@
 import { Body, Controller, Delete, Get, ParseIntPipe, Patch, Query, Request, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiResponse, PartialType } from '@nestjs/swagger';
-import { AuthGuard } from 'src/auth/auth.guard';
-import { CreateUserDto } from 'src/Dto/create-user.dto';
-import { UserService } from 'src/user/user.service';
+import { AuthGuard } from '../auth/auth.guard';
+import { CreateUserDto } from '../Dto/create-user.dto';
+import { UserService } from '../user/user.service';
 
 @UseGuards(AuthGuard)
 @ApiBearerAuth('JWT-auth')
