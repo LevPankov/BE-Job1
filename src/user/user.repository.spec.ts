@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { UserService } from './user.service';
+import { UserRepository } from './user.repository';
 import { PasswordService } from './password.service';
 import { NotFoundException } from '@nestjs/common';
 import { Kysely } from 'kysely';
@@ -17,27 +17,27 @@ const mockPasswordService = {
   validatePassword: jest.fn(),
 };
 
-describe('UserService', () => {
-  let userService: UserService;
+describe('UserRepository', () => {
+  let userRepository: UserRepository;
   let kysely: jest.Mocked<Kysely<Database>>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        UserService,
+        UserRepository,
         { provide: 'KYSELY_DB', useValue: mockKysely },
         { provide: PasswordService, useValue: mockPasswordService }
       ],
     }).compile();
 
-    userService = module.get<UserService>(UserService);
+    userRepository = module.get<UserRepository>(UserRepository);
     kysely = module.get('KYSELY_DB');
 
     jest.clearAllMocks();
   });
 
-  it('UserService should be defined', () => {
-    expect(userService).toBeDefined();
+  it('UserRepository should be defined', () => {
+    expect(userRepository).toBeDefined();
   });
 
   it('should return user when it found', async () => {
@@ -59,7 +59,7 @@ describe('UserService', () => {
 
       mockKysely.selectFrom.mockReturnValue(mockSelect as any);
 
-      const result = await userService.getByLogin('Oleg');
+      const result = await userRepository.getByLogin('Oleg');
 
       expect(mockKysely.selectFrom).toHaveBeenCalledWith('users');
       expect(mockSelect.where).toHaveBeenCalledWith('login', '=', 'Oleg');
@@ -75,8 +75,8 @@ describe('UserService', () => {
 
       mockKysely.selectFrom.mockReturnValue(mockSelect as any);
 
-      await expect(userService.getByLogin('Kolya')).rejects.toThrow(NotFoundException);
-      await expect(userService.getByLogin('Kolya')).rejects.toThrow('User with login Kolya not found');
+      await expect(userRepository.getByLogin('Kolya')).rejects.toThrow(NotFoundException);
+      await expect(userRepository.getByLogin('Kolya')).rejects.toThrow('User with login Kolya not found');
     });
 
   it('should create new user', async () => {
@@ -115,7 +115,7 @@ describe('UserService', () => {
     mockKysely.insertInto.mockReturnValue(mockInsert as any);
     mockPasswordService.hashPassword.mockResolvedValue(hashedPassword);
 
-    const result = await userService.insert(userData);
+    const result = await userRepository.insert(userData);
 
     expect(mockPasswordService.hashPassword).toHaveBeenCalledWith('hash_pass');
     

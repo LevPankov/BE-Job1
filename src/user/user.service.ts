@@ -1,159 +1,42 @@
-import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { Database, NewUser, UserUpdate } from '../DB/types';
-import { Kysely } from 'kysely';
+import { Injectable } from '@nestjs/common';
 import { CreateUserDto } from '../Dto/create-user.dto';
-import { PasswordService } from './password.service';
+import { UserRepository } from './user.repository';
 
 @Injectable()
 export class UserService {
     constructor(
-        private readonly passwordService: PasswordService,
-        @Inject('KYSELY_DB') private readonly db: Kysely<Database>,
+        private readonly userRepository : UserRepository
     ) {}
     
-    async getAll(page: number) {
-        if (page == -1) {
-            return await this.db
-            .selectFrom("users")
-            .select(['login', 'email', 'age', 'description'])
-            .execute();
-        }
-
-        if (page < 1) {
-            throw new BadRequestException("Page numbering starts from 1")
-        }
-
-        const limit = 3;
-        return await this.db
-            .selectFrom("users")
-            .select(['login', 'email', 'age', 'description'])
-            .offset((page - 1) * limit)
-            .limit(limit)
-            .execute();
+    getAll(page: number) {
+        return this.userRepository.getAll(page);
     }
     
-    async getById(id : number) {
-        const user = await this.db
-        .selectFrom("users")
-        .selectAll()
-        .where('id', '=', id)
-        .executeTakeFirst();
-    
-        if (!user) {
-          throw new NotFoundException(`User with ID ${id} not found`);
-        }
-    
-        return user;
+    getById(id : number) {
+        return this.userRepository.getById(id);
     }
     
-    async getByLogin(login : string) {
-        const user = await this.db
-        .selectFrom("users")
-        .selectAll()
-        .where('login', '=', login)
-        .executeTakeFirst();
-    
-        if (!user) {
-          throw new NotFoundException(`User with login ${login} not found`);
-        }
-    
-        return user;
+    getByLogin(login : string) {
+        return this.userRepository.getByLogin(login);
     }
     
-    async isInDb(login: string) {
-        const user = await this.db
-        .selectFrom("users")
-        .select('id')
-        .where('login', '=', login)
-        .executeTakeFirst();
-
-        return user != undefined;
-    }
-
-    async insert(data: CreateUserDto) {
-        if (await this.isInDb(data.login)) {
-            throw new BadRequestException(`Login ${data.login} is already exists`)
-        }
-
-        const hashPassword = await this.passwordService.hashPassword(data.password);
-        const newUser: NewUser = {
-            login: data.login,
-            email: data.email,
-            password_hash: hashPassword,
-            age: data.age,
-            description: data.description
-        }
-        
-        const result = await this.db
-        .insertInto('users')
-        .values(newUser)
-        .executeTakeFirst();
-    
-        if (!result){
-          throw new Error(`Not found id ${result}`);
-        }
-    
-        return "Success!";
+    insert(data: CreateUserDto) {
+        return this.userRepository.insert(data);
     }
     
-    async updateById(id: number, data: Partial<CreateUserDto>) {
-        const userUpdate: UserUpdate = {
-            login: data.login,
-            email: data.email,
-            age: data.age,
-            description: data.description
-        };
-        if (data.password) {
-            userUpdate.password_hash = await this.passwordService.hashPassword(data.password);
-        }
-
-        await this.db
-        .updateTable('users')
-        .set(userUpdate)
-        .where('id', '=', id)
-        .execute();
-    
-        return "Success!";
+    updateById(id: number, data: Partial<CreateUserDto>) {
+        return this.userRepository.updateById(id, data);
     }
 
-    async updateByLogin(login: string, data: Partial<CreateUserDto>) {
-        if (!await this.isInDb(login)) {
-            throw new BadRequestException('Login is incorrect')
-        }
-        
-        const userUpdate: UserUpdate = {
-            email: data.email,
-            age: data.age,
-            description: data.description
-        };
-        if (data.password) {
-            userUpdate.password_hash = await this.passwordService.hashPassword(data.password);
-        }
-
-        await this.db
-        .updateTable('users')
-        .set(userUpdate)
-        .where('login', '=', login)
-        .execute();
-    
-        return "Success!";
+    updateByLogin(login: string, data: Partial<CreateUserDto>) {
+       return this.userRepository.updateByLogin(login, data);
     }
     
     async removeById(id: number) {
-        await this.db
-        .deleteFrom("users")
-        .where('id', '=', id)
-        .execute();
-    
-        return "Success!";
+        return this.userRepository.removeById(id);
     }
 
     async removeByLogin(login: string) {
-        await this.db
-        .deleteFrom("users")
-        .where('login', '=', login)
-        .execute();
-    
-        return "Success!";
+        return this.userRepository.removeByLogin(login);
     }
 }

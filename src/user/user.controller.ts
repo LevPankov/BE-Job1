@@ -1,48 +1,84 @@
-import { Controller, Get, Post, Body, Param, Delete, Patch, ParseIntPipe, Query, UsePipes, ValidationPipe } from '@nestjs/common';
-import { UserService } from './user.service';
+import { Body, Controller, Delete, Get, ParseIntPipe, Patch, Query, Request, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiBody, ApiResponse, PartialType } from '@nestjs/swagger';
+import { AuthGuard } from '../auth/auth.guard';
 import { CreateUserDto } from '../Dto/create-user.dto';
-import { ApiTags } from '@nestjs/swagger';
+import { UserService } from '../user/user.service';
 
-//God mod
-@ApiTags('Admin plays wtih DB (not from task, no documentation)')
+@UseGuards(AuthGuard)
+@ApiBearerAuth('JWT-auth')
+@ApiResponse({
+    status: 401,
+    description: 'Unauthorized'
+})
 @Controller('user')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+    constructor(
+        private readonly userService: UserService
+    ) {}
 
-  
-  @UsePipes(new ValidationPipe())
-  @Post('reg')
-  async createUser(@Body() createUserDto: CreateUserDto) {
-    return this.userService.insert(createUserDto);
-  }
+    @Get('get/my')
+    @ApiResponse({
+        status: 200,
+        description: 'Returns user data'
+    })
+    getpPofile(@Request() req) {
+        const login = req.user.login;
+        return this.userService.getByLogin(login);
+    }
 
-  @Post('auth')
-  async checkIsInDb(@Body('login') login : string) {
-    return this.userService.isInDb(login);
-  }
+    @Get('get/all')
+    @ApiResponse({
+        status: 200,
+        description: 'Returns page with 3 user items'
+    })
+    @ApiResponse({
+        status: 400,
+        description: 'Page numbering starts from 1'
+    })
+    @ApiResponse({
+        status: 400,
+        description: 'Validation failed (numeric string is expected)'
+    })
+    getAll(@Query('page', ParseIntPipe) page: number) {
+        return this.userService.getAll(page);
+    }
+    
+    @Get('get')
+    @ApiResponse({
+        status: 200,
+        description: 'User data without password_hash',
+    })
+    @ApiResponse({
+        status: 404,
+        description: 'User not found'
+    })
+    async findProfileByLogin(@Query('login') login: string) {
+        const { password_hash, ...data } = await this.userService.getByLogin(login);
+        return data;
+    }
 
-  @Get('get/all')
-  async getAll() {
-    return this.userService.getAll(-1);
-  }
+    @Patch('update')
+    @ApiBody({ type: PartialType(CreateUserDto) })
+    @ApiResponse({
+        status: 200,
+        description: 'Success!',
+    })
+    @ApiResponse({
+        status: 400,
+        description: 'Login is incorrect',
+    })
+    updateProfileByLogin(@Request() req, @Body() updateUserDto: Partial<CreateUserDto> ) {
+        const login = req.user.login;
+        return this.userService.updateByLogin(login, updateUserDto);
+    }
 
-  @Get('get/:id')
-  async getById(@Param('id', ParseIntPipe) id: number) {
-    return this.userService.getById(id);
-  }
-
-  @Patch('update/:id')
-  async updateProfileById(@Param('id', ParseIntPipe) id: number, @Body() updateUserDto: Partial<CreateUserDto> ) {
-    return this.userService.updateById(id, updateUserDto);
-  }
-
-  @Delete('delete/:id')
-  async deleteProfileById(@Param('id', ParseIntPipe) id: number) {
-    return this.userService.removeById(id);
-  }
-
-  @Delete('delete')
-  async deleteProfileByLogin(@Body('login') login: string) {
-    return this.userService.removeByLogin(login);
-  }
+    @Delete('delete')
+    @ApiResponse({
+        status: 200,
+        description: 'Success!',
+    })
+    deleteProfileByLogin(@Request() req) {
+        const login = req.user.login;
+        return this.userService.removeByLogin(login);
+    }
 }

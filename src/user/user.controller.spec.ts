@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UserController } from './user.controller';
 import { UserService } from './user.service';
-import { CreateUserDto } from '../Dto/create-user.dto';
+import { AuthModule } from '../auth/auth.module';
 
 const mockUserService = {
   insert: jest.fn(),
@@ -17,6 +17,7 @@ describe('UserController', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
+      imports: [AuthModule],
       controllers: [UserController],
       providers: [
         { provide: UserService, useValue: mockUserService },
@@ -31,21 +32,4 @@ describe('UserController', () => {
   it('should be defined', () => {
     expect(controller).toBeDefined();
   });
-
-  it('should create a user', async () => {
-      const createUserDto: CreateUserDto = {
-        login: 'testuser',
-        email: 'test@example.com',
-        password: 'password123',
-        age: 25,
-        description: "something"
-      };
-
-      mockUserService.insert.mockResolvedValue("Success!");
-
-      const result = await controller.createUser(createUserDto);
-
-      expect(userService.insert).toHaveBeenCalledWith(createUserDto);
-      expect(result).toEqual('Success!');
-    });
 });

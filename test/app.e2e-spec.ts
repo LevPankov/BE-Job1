@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication } from '@nestjs/common';
+import { INestApplication, ValidationPipe } from '@nestjs/common';
 import request from 'supertest';
 import { App } from 'supertest/types';
 import { AppModule } from './../src/app.module';
@@ -17,18 +17,12 @@ describe('AppController (e2e)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
+    app.useGlobalPipes(new ValidationPipe());
     await app.init();
   });
 
   afterAll(async () => {
     await app.close();
-  });
-
-  it('/ (GET)', () => {
-    return request(app.getHttpServer())
-      .get('/')
-      .expect(200)
-      .expect('Hello World!');
   });
 
   it('should register a new user', () => {
@@ -89,7 +83,7 @@ describe('AppController (e2e)', () => {
 
   it('should return this user info', () => {
     return request(app.getHttpServer())
-      .get('/profile/get/my')
+      .get('/user/get/my')
       .set('Authorization', `Bearer ${authToken}`)
       .expect(200)
       .expect((res) => {
@@ -103,13 +97,13 @@ describe('AppController (e2e)', () => {
 
   it('should fail without token', () => {
     return request(app.getHttpServer())
-      .get('/profile/get/my')
+      .get('/user/get/my')
       .expect(401);
   });
 
   it('should return all users info', () => {
     return request(app.getHttpServer())
-      .get('/profile/get/all')
+      .get('/user/get/all')
       .set('Authorization', `Bearer ${authToken}`)
       .query({ 'page': -1 })
       .expect(200)
@@ -122,7 +116,7 @@ describe('AppController (e2e)', () => {
 
   it('should return another user info without password_hash', () => {
     return request(app.getHttpServer())
-      .get('/profile/get')
+      .get('/user/get')
       .set('Authorization', `Bearer ${authToken}`)
       .query({'login': 'testuser'})
       .expect(200)
@@ -137,7 +131,7 @@ describe('AppController (e2e)', () => {
   
   it('should update user info', async () => {
     await request(app.getHttpServer())
-      .patch('/profile/update')
+      .patch('/user/update')
       .set('Authorization', `Bearer ${authToken}`)
       .send({
         'age' : 20,
@@ -146,7 +140,7 @@ describe('AppController (e2e)', () => {
       .expect(200);
       
     return request(app.getHttpServer())
-      .get('/profile/get/my')
+      .get('/user/get/my')
       .set('Authorization', `Bearer ${authToken}`)
       .expect(200)
       .expect((res) => {
@@ -160,12 +154,12 @@ describe('AppController (e2e)', () => {
 
   it('should delete user', async () => {
     await request(app.getHttpServer())
-      .delete('/profile/delete')
+      .delete('/user/delete')
       .set('Authorization', `Bearer ${authToken}`)
       .expect(200);
 
     return request(app.getHttpServer())
-      .get('/profile/get/all')
+      .get('/user/get/all')
       .set('Authorization', `Bearer ${authToken}`)
       .query({ 'page': -1 })
       .expect(200)
