@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Get, ParseIntPipe, Patch, Query, Request, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiResponse, PartialType } from '@nestjs/swagger';
 import { AuthGuard } from '../auth/auth.guard';
-import { CreateUserDto } from '../Dto/create-user.dto';
+import { CreateUserDto } from './dto/create-user.dto';
 import { UserService } from '../user/user.service';
 
 @UseGuards(AuthGuard)

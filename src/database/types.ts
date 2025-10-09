@@ -13,6 +13,7 @@ export interface UserTable {
     password_hash: string;
     age: number;
     description: string | null;
+    deleted_at: Date | null;
 }
 
 export type User = Selectable<UserTable>;

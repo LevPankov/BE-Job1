@@ -1,7 +1,7 @@
 import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { Database, NewUser, UserUpdate } from '../DB/types';
+import { Database, NewUser, UserUpdate } from '../database/types';
 import { Kysely } from 'kysely';
-import { CreateUserDto } from '../Dto/create-user.dto';
+import { CreateUserDto } from './dto/create-user.dto';
 import { PasswordService } from './password.service';
 
 @Injectable()
@@ -15,6 +15,7 @@ export class UserRepository {
         if (page == -1) {
             return await this.db
             .selectFrom("users")
+        .where('deleted_at', 'is', null)
             .select(['login', 'email', 'age', 'description'])
             .execute();
         }
@@ -27,6 +28,7 @@ export class UserRepository {
         return await this.db
             .selectFrom("users")
             .select(['login', 'email', 'age', 'description'])
+        .where('deleted_at', 'is', null)
             .offset((page - 1) * limit)
             .limit(limit)
             .execute();
@@ -36,6 +38,7 @@ export class UserRepository {
         const user = await this.db
         .selectFrom("users")
         .selectAll()
+        .where('deleted_at', 'is', null)
         .where('id', '=', id)
         .executeTakeFirst();
     
@@ -50,6 +53,7 @@ export class UserRepository {
         const user = await this.db
         .selectFrom("users")
         .selectAll()
+        .where('deleted_at', 'is', null)
         .where('login', '=', login)
         .executeTakeFirst();
     
@@ -70,9 +74,24 @@ export class UserRepository {
         return user != undefined;
     }
 
+    async wasDeleted(login: string) {
+        const userDeleteTimeClmn = await this.db
+        .selectFrom("users")
+        .select('deleted_at')
+        .where('login', '=', login)
+        .executeTakeFirst();
+
+        const userDeleteTime = userDeleteTimeClmn?.deleted_at;
+        return userDeleteTime != null && userDeleteTime != undefined;
+    }
+
     async insert(data: CreateUserDto) {
         if (await this.isInDb(data.login)) {
             throw new BadRequestException(`Login ${data.login} is already exists`)
+        }
+
+        if (await this.wasDeleted(data.login)) {
+            throw new BadRequestException(`Login ${data.login} was existed but deleted`)
         }
 
         const hashPassword = await this.passwordService.hashPassword(data.password);
@@ -85,14 +104,13 @@ export class UserRepository {
         }
         
         const result = await this.db
-        .insertInto('users')
-        .values(newUser)
-        .executeTakeFirst();
+            .insertInto('users')
+            .values(newUser)
+            .executeTakeFirst();
     
         if (!result){
           throw new Error(`Not found id ${result}`);
         }
-    
         return "Success!";
     }
     
@@ -121,6 +139,10 @@ export class UserRepository {
             throw new BadRequestException('Login is incorrect')
         }
         
+        if (await this.wasDeleted(login)) {
+            throw new BadRequestException(`You can't update deleted profiles`)
+        }
+        
         const userUpdate: UserUpdate = {
             email: data.email,
             age: data.age,
@@ -141,7 +163,10 @@ export class UserRepository {
     
     async removeById(id: number) {
         await this.db
-        .deleteFrom("users")
+        .updateTable("users")
+        .set({
+            deleted_at: new Date
+        })
         .where('id', '=', id)
         .execute();
     
@@ -150,7 +175,10 @@ export class UserRepository {
 
     async removeByLogin(login: string) {
         await this.db
-        .deleteFrom("users")
+        .updateTable("users")
+        .set({
+            deleted_at: new Date
+        })
         .where('login', '=', login)
         .execute();
     

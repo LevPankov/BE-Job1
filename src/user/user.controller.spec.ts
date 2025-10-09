@@ -2,6 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { UserController } from './user.controller';
 import { UserService } from './user.service';
 import { AuthModule } from '../auth/auth.module';
+import { ConfigModule } from '@nestjs/config';
+import { JwtModule } from '@nestjs/jwt';
 
 const mockUserService = {
   insert: jest.fn(),
@@ -17,7 +19,7 @@ describe('UserController', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [AuthModule],
+      imports: [AuthModule, ConfigModule, JwtModule],
       controllers: [UserController],
       providers: [
         { provide: UserService, useValue: mockUserService },
