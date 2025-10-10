@@ -5,7 +5,7 @@ import { App } from 'supertest/types';
 import { AppModule } from './../src/app.module';
 
 process.env.DATABASE_URL = 'postgresql://postgres:postgres@localhost:5432/mydb';
-process.env.JWT_SECRET = 'Kto prochital, tot lox';
+process.env.JWT_SECRET = 'Test secret';
 
 describe('AppController (e2e)', () => {
   let app: INestApplication<App>;
@@ -38,7 +38,6 @@ describe('AppController (e2e)', () => {
       .expect(201)
       .expect((res) => {
         expect(res.body).toBeDefined();
-        expect(res.text).toBe('Success!');
         expect(res.body.password).toBeUndefined();
       });
   });
@@ -152,16 +151,45 @@ describe('AppController (e2e)', () => {
       });
   })
 
-  it('should delete user', async () => {
+  it('should soft-delete user', async () => {
     await request(app.getHttpServer())
       .delete('/user/delete')
       .set('Authorization', `Bearer ${authToken}`)
       .expect(200);
 
-    return request(app.getHttpServer())
+    await request(app.getHttpServer())
       .get('/user/get/all')
       .set('Authorization', `Bearer ${authToken}`)
       .query({ 'page': -1 })
+      .expect(200)
+      .expect((res) => {
+        expect(Array.isArray(res.body)).toBe(true);
+        const thisUser = res.body.find(user => user.login === 'testuser');
+        expect(thisUser).toBeUndefined();
+      });
+
+    await request(app.getHttpServer())
+      .get('/user/get/all')
+      .set('Authorization', `Bearer ${authToken}`)
+      .query({ 'page': -2 })
+      .expect(200)
+      .expect((res) => {
+        expect(Array.isArray(res.body)).toBe(true);
+        const thisUser = res.body.find(user => user.login === 'testuser');
+        expect(thisUser).toBeDefined();
+      });
+  });
+
+   it('should hard-delete user', async () => {
+    await request(app.getHttpServer())
+      .delete('/user/hard-delete')
+      .set('Authorization', `Bearer ${authToken}`)
+      .expect(200);
+
+    await request(app.getHttpServer())
+      .get('/user/get/all')
+      .set('Authorization', `Bearer ${authToken}`)
+      .query({ 'page': -2 })
       .expect(200)
       .expect((res) => {
         expect(Array.isArray(res.body)).toBe(true);

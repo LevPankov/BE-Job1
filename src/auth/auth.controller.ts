@@ -3,6 +3,7 @@ import { AuthService } from './auth.service';
 import { UserService } from '../user/user.service';
 import { CreateUserDto } from '../user/dto/create-user.dto';
 import { ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { AuthUserDto } from './dto/auth-user.dto';
 
 @ApiTags('Authentication')
 @Controller('auth')
@@ -26,8 +27,8 @@ export class AuthController {
         status: 400,
         description: 'Login is already exist',
     })
-    async createUser(@Body() createUserDto: CreateUserDto) {
-        return this.userService.insert(createUserDto);
+    createUser(@Body() createUserDto: CreateUserDto) {
+        return this.userService.create(createUserDto);
     }
 
     @Post('login')
@@ -52,7 +53,7 @@ export class AuthController {
         status: 404,
         description: 'User not found',
     })
-    signIn(@Body() signInDto: Record<string, string>) {
+    signIn(@Body() signInDto: AuthUserDto) {
         return this.authService.signIn(signInDto.login, signInDto.password);
     }
 }

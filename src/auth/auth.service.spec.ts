@@ -1,16 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthService } from './auth.service';
 import { UserService } from '../user/user.service';
-import { PasswordService } from '../user/password.service';
+import { PasswordService } from '../utils/password-hasher.util';
 import { JwtService } from '@nestjs/jwt';
 import { UnauthorizedException } from '@nestjs/common';
 
 const mockUserService = {
   getByLogin: jest.fn(),
-};
-
-const mockPasswordService = {
-  validatePassword: jest.fn(),
 };
 
 const mockJwtService = {
@@ -20,7 +16,6 @@ const mockJwtService = {
 describe('AuthService', () => {
   let authService: AuthService;
   let userService: UserService;
-  let passwordService: PasswordService;
   let jwtService: JwtService;
 
   beforeEach(async () => {
@@ -32,10 +27,6 @@ describe('AuthService', () => {
           useValue: mockUserService,
         },
         {
-          provide: PasswordService,
-          useValue: mockPasswordService,
-        },
-        {
           provide: JwtService,
           useValue: mockJwtService,
         },
@@ -44,7 +35,6 @@ describe('AuthService', () => {
 
     authService = module.get<AuthService>(AuthService);
     userService = module.get<UserService>(UserService);
-    passwordService = module.get<PasswordService>(PasswordService);
     jwtService = module.get<JwtService>(JwtService);
     
     jest.clearAllMocks();
@@ -54,11 +44,12 @@ describe('AuthService', () => {
     it('should return  JWT token with right data', async () => {
       const login = 'testuser';
       const password = 'correctpassword';
-      
+      const password_hash = PasswordService.hashPassword(password);
+
       const mockUser = {
         id: 1,
         login: 'testuser',
-        password_hash: 'hashed_password_123',
+        password_hash: password_hash,
         email: 'test@example.com',
         age: 25
       };
@@ -68,7 +59,6 @@ describe('AuthService', () => {
       };
 
       mockUserService.getByLogin.mockResolvedValue(mockUser);
-      mockPasswordService.validatePassword.mockResolvedValue(true);
       mockJwtService.signAsync.mockResolvedValue(expectedToken.access_token);
 
       const result = await authService.signIn(login, password);
@@ -76,11 +66,11 @@ describe('AuthService', () => {
       expect(userService.getByLogin).toHaveBeenCalledWith('testuser');
       expect(userService.getByLogin).toHaveBeenCalledTimes(1);
 
-      expect(passwordService.validatePassword).toHaveBeenCalledWith(
-        'correctpassword',
-        'hashed_password_123'
+      expect(PasswordService.validatePassword).toHaveBeenCalledWith(
+        password,
+        password_hash
       );
-      expect(passwordService.validatePassword).toHaveBeenCalledTimes(1);
+      expect(PasswordService.validatePassword).toHaveBeenCalledTimes(1);
 
       expect(jwtService.signAsync).toHaveBeenCalledWith({
         sub: 1,
@@ -98,11 +88,10 @@ describe('AuthService', () => {
       const mockUser = {
         id: 1,
         login: 'testuser',
-        password_hash: 'hashed_password_123'
+        password_hash: 'wrong_hash'
       };
 
       mockUserService.getByLogin.mockResolvedValue(mockUser);
-      mockPasswordService.validatePassword.mockResolvedValue(false);
 
       await expect(authService.signIn(login, password))
         .rejects
@@ -117,7 +106,7 @@ describe('AuthService', () => {
   });
 
   describe('Edge Cases', () => {
-    it('должен корректно обрабатывать пользователя без дополнительных полей', async () => {
+    it('should correctly process the user without additional fields', async () => {
       const mockUser = {
         id: 2,
         login: 'simpleuser',
@@ -125,7 +114,6 @@ describe('AuthService', () => {
       };
 
       mockUserService.getByLogin.mockResolvedValue(mockUser);
-      mockPasswordService.validatePassword.mockResolvedValue(true);
       mockJwtService.signAsync.mockResolvedValue('jwt_token');
 
       const result = await authService.signIn('simpleuser', 'password');
@@ -145,7 +133,6 @@ describe('AuthService', () => {
       };
 
       mockUserService.getByLogin.mockResolvedValue(mockUser);
-      mockPasswordService.validatePassword.mockResolvedValue(false);
 
       await expect(authService.signIn('', ''))
         .rejects

@@ -1,20 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UserRepository } from './user.repository';
-import { PasswordService } from './password.service';
 import { NotFoundException } from '@nestjs/common';
 import { Kysely } from 'kysely';
 import { Database } from '../database/types';
+import { PasswordService } from '../utils/password-hasher.util';
 
 const mockKysely = {
   selectFrom: jest.fn(),
   insertInto: jest.fn(),
   updateTable: jest.fn(),
   deleteFrom: jest.fn(),
-};
-
-const mockPasswordService = {
-  hashPassword: jest.fn(),
-  validatePassword: jest.fn(),
 };
 
 describe('UserRepository', () => {
@@ -26,7 +21,6 @@ describe('UserRepository', () => {
       providers: [
         UserRepository,
         { provide: 'KYSELY_DB', useValue: mockKysely },
-        { provide: PasswordService, useValue: mockPasswordService }
       ],
     }).compile();
 
@@ -41,7 +35,7 @@ describe('UserRepository', () => {
   });
 
   it('should return user when it found', async () => {
-    const hash_pass = mockPasswordService.hashPassword('qwerty');
+    const hash_pass = PasswordService.hashPassword('qwerty');
     const mockUser = { 
         id: 1, 
         login: 'Oleg',
@@ -80,15 +74,16 @@ describe('UserRepository', () => {
     });
 
   it('should create new user', async () => {
+    const hashedPassword = await PasswordService.hashPassword('hash_pass');
+
     const userData = {
       login: 'petya',
       email: 'petya@mail.ru', 
-      password: 'password',
+      password_hash: hashedPassword,
       age: 30, 
       description: "dsf"
     };
 
-    const hashedPassword = mockPasswordService.hashPassword('hash_pass');
     const createdUser = {
       id: 2,
       login: 'petya',
@@ -113,11 +108,10 @@ describe('UserRepository', () => {
 
     mockKysely.selectFrom.mockReturnValue(mockSelect as any);
     mockKysely.insertInto.mockReturnValue(mockInsert as any);
-    mockPasswordService.hashPassword.mockResolvedValue(hashedPassword);
 
-    const result = await userRepository.insert(userData);
+    const result = await userRepository.create(userData);
 
-    expect(mockPasswordService.hashPassword).toHaveBeenCalledWith('hash_pass');
+    expect(PasswordService.hashPassword).toHaveBeenCalledWith('hash_pass');
     
     expect(mockKysely.insertInto).toHaveBeenCalledWith('users');
     expect(mockInsert.values).toHaveBeenCalledWith({
@@ -128,6 +122,6 @@ describe('UserRepository', () => {
       description: "dsf"
     });
     
-    expect(result).toEqual('Success!');
+    expect(result).toBeDefined();
   });
 });

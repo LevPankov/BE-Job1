@@ -81,4 +81,14 @@ export class UserController {
         const login = req.user.login;
         return this.userService.removeByLogin(login);
     }
+    
+    @Delete('hard-delete')
+    @ApiResponse({
+        status: 200,
+        description: 'Success!',
+    })
+    hardDeleteProfileByLogin(@Request() req) {
+        const login = req.user.login;
+        return this.userService.removeHardByLogin(login);
+    }
 }
