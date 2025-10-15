@@ -63,8 +63,8 @@ describe('AuthController', () => {
 
       const result = await authController.createUser(createUserDto);
 
-      expect(userService.create).toHaveBeenCalledWith(createUserDto);
-      expect(userService.create).toHaveBeenCalledTimes(1);
+      expect(authService.createProfile).toHaveBeenCalledWith(createUserDto);
+      expect(authService.createProfile).toHaveBeenCalledTimes(1);
       expect(result).toEqual(expectedResult);
     });
 

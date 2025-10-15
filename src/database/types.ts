@@ -1,11 +1,10 @@
 import { Generated, Selectable, Insertable, Updateable } from 'kysely';
 
-// Этот интерфейс описывает все таблицы в нашей базе данных.
 export interface Database {
     users: UserTable; 
+    refresh_tokens: RefreshTokenTable;
 }
 
-// Интерфейс, описывающий конкретно таблицу
 export interface UserTable {
     id: Generated<number>;
     login: string;
@@ -19,3 +18,16 @@ export interface UserTable {
 export type User = Selectable<UserTable>;
 export type NewUser = Insertable<UserTable>;
 export type UserUpdate = Updateable<UserTable>;
+
+export interface RefreshTokenTable {
+  id: Generated<number>;
+  user_id: number;
+  token: string;
+  expires_at: Date;
+  created_at: Generated<Date>;
+  revoked: boolean;
+}
+
+export type RefreshToken = Selectable<RefreshTokenTable>;
+export type NewRefreshToken = Insertable<RefreshTokenTable>;
+export type RefreshTokenUpdate = Updateable<RefreshTokenTable>;

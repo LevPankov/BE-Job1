@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { Database, NewUser, UserUpdate } from '../database/types';
+import { Database, UserUpdate } from '../database/types';
 import { Kysely } from 'kysely';
 
 const paginationLimit = 3
@@ -52,17 +52,11 @@ export class UserRepository {
         .executeTakeFirst();
     }
 
-    async create(data: NewUser) {
-        return await this.db
-            .insertInto('users')
-            .values(data)
-            .executeTakeFirst();
-    }
-    
     async updateByLogin(login: string, data: UserUpdate) {
         await this.db
         .updateTable('users')
         .set(data)
+        .where('deleted_at', 'is', null)
         .where('login', '=', login)
         .execute();
     }
@@ -73,6 +67,7 @@ export class UserRepository {
         .set({
             deleted_at: new Date
         })
+        .where('deleted_at', 'is', null)
         .where('login', '=', login)
         .execute();
     }

@@ -1,9 +1,8 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/create-user.dto';
 import { UserRepository } from './user.repository';
 import { PasswordService } from '../utils/password-hasher.util';
-import { NewUser, UserUpdate } from '../database/types';
-import { UserInDbStatus } from '../utils/user-in-db-status.enum';
+import { UserUpdate } from '../database/types';
 
 @Injectable()
 export class UserService {
@@ -37,34 +36,15 @@ export class UserService {
         return user;
     }
     
-    async create(data: CreateUserDto) {
-        switch(await this.chechStatusInDb(data.login)) {
-            case UserInDbStatus.ACTIVE: 
-                throw new BadRequestException(`Login ${data.login} is already exists`);
-            case UserInDbStatus.DELETED:
-                throw new BadRequestException(`Login ${data.login} was existed but deleted`)
+    async updateByLogin(login: string, data: UpdateUserDto) {
+        const user = await this.userRepository.getByLoginWithDeleted(login);
+        if (!user){
+            throw new BadRequestException('Login is incorrect')
         }
-        
-        const hashPassword = await PasswordService.hashPassword(data.password);
-        const newUser: NewUser = {
-            login: data.login,
-            email: data.email,
-            password_hash: hashPassword,
-            age: data.age,
-            description: data.description
+        if (user.deleted_at != null) {
+            throw new BadRequestException(`You can't update deleted profiles`)
         }
-        
-        await this.userRepository.create(newUser);
-    }
-    
-    async updateByLogin(login: string, data: Partial<CreateUserDto>) {
-        switch(await this.chechStatusInDb(login)) {
-            case UserInDbStatus.NOT_FOUND: 
-                throw new BadRequestException('Login is incorrect')
-            case UserInDbStatus.DELETED:
-                throw new BadRequestException(`You can't update deleted profiles`)
-        }
-        
+
         const userUpdate: UserUpdate = {
             email: data.email,
             age: data.age,
@@ -83,17 +63,5 @@ export class UserService {
 
     removeHardByLogin(login: string) {
         return this.userRepository.removeHardByLogin(login);
-    }
-
-    async chechStatusInDb(login: string) : Promise<UserInDbStatus> {
-        const user = await this.userRepository.getByLoginWithDeleted(login);
-        if (!user){
-            return UserInDbStatus.NOT_FOUND;
-        }
-        const userDeleteTime = user?.deleted_at;
-        if (userDeleteTime == null) {
-            return UserInDbStatus.ACTIVE;
-        }
-        return UserInDbStatus.DELETED;
     }
 }
