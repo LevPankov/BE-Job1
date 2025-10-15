@@ -1,11 +1,12 @@
 import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { PasswordService } from '../utils/password-hasher.util';
+import { PasswordService } from '../common/utils/password-hasher.util';
 import { CreateUserDto } from '../user/dto/create-user.dto';
 import { NewUser } from '../database/types';
 import { AuthRepository } from './auth.repository';
 import { RefreshTokenService } from './refresh-token.service';
 import { ConfigService } from '@nestjs/config';
+import { RefreshTokenResDto } from './dto/refresh-token.res.dto';
 
 @Injectable()
 export class AuthService {
@@ -34,7 +35,7 @@ export class AuthService {
         await this.authRepository.create(newUser);
     }
 
-    async signIn(login: string, pass: string) {
+    async signIn(login: string, pass: string): Promise<RefreshTokenResDto> {
         const user = await this.authRepository.getByLogin(login);
         if (!user) {
           throw new NotFoundException(`User with login ${login} not found`);
@@ -50,11 +51,11 @@ export class AuthService {
             access_token: accessToken,
             refresh_token: refreshToken,
             token_type: 'bearer',
-            expires_in: this.configService.get('jwt.accessExpiresIn'),
+            expires_in: this.configService.getOrThrow('jwt.accessExpiresIn'),
         };
     }
 
-    async refreshTokens(refreshToken: string) {
+    async refreshTokens(refreshToken: string): Promise<RefreshTokenResDto> {
         const tokenEntity = await this.refreshTokenService.findValidToken(refreshToken);
         if (!tokenEntity) {
             throw new UnauthorizedException('Invalid refresh token');
@@ -74,7 +75,7 @@ export class AuthService {
             access_token: newAccessToken,
             refresh_token: newRefreshToken,
             token_type: 'bearer',
-            expires_in: this.configService.get('jwt.accessExpiresIn'),
+            expires_in: this.configService.getOrThrow('jwt.accessExpiresIn'),
         };
     }
 

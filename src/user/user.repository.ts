@@ -1,6 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { Database, UserUpdate } from '../database/types';
+import { Database, User, UserUpdate } from '../database/types';
 import { Kysely } from 'kysely';
+import { UserInfoResDto } from './dto/user-info.res.dto';
+import { UserEnteredInfoResDto } from './dto/user-entered-info.res.dto.';
 
 const paginationLimit = 3
 
@@ -10,7 +12,7 @@ export class UserRepository {
         @Inject('KYSELY_DB') private readonly db: Kysely<Database>,
     ) {}
     
-    async getAll() {
+    async getAll(): Promise<UserEnteredInfoResDto[]>  {
         return await this.db
             .selectFrom("users")
             .select(['login', 'email', 'age', 'description'])
@@ -18,7 +20,7 @@ export class UserRepository {
             .execute();
     }
 
-    async getAllPaginated(page: number) {
+    async getAllPaginated(page: number): Promise<UserEnteredInfoResDto[]> {
         return await this.db
             .selectFrom("users")
             .select(['login', 'email', 'age', 'description'])
@@ -28,54 +30,54 @@ export class UserRepository {
             .execute();
     }
     
-    async getAllWithDeleted() {
+    async getAllWithDeleted(): Promise<User[]> {
         return await this.db
             .selectFrom("users")
             .selectAll()
             .execute();
     }
 
-    async getByLogin(login : string) {
+    async getByLogin(login : string): Promise<UserInfoResDto | undefined> {
         return await this.db
-        .selectFrom("users")
-        .select(['id', 'login', 'email', 'age', 'description', 'password_hash'])
-        .where('deleted_at', 'is', null)
-        .where('login', '=', login)
-        .executeTakeFirst();
+            .selectFrom("users")
+            .select(['id', 'login', 'email', 'age', 'description', 'password_hash'])
+            .where('deleted_at', 'is', null)
+            .where('login', '=', login)
+            .executeTakeFirst();
     }
     
-    async getByLoginWithDeleted(login : string) {
+    async getByLoginWithDeleted(login : string): Promise<User | undefined> {
         return await this.db
-        .selectFrom("users")
-        .selectAll()
-        .where('login', '=', login)
-        .executeTakeFirst();
+            .selectFrom("users")
+            .selectAll()
+            .where('login', '=', login)
+            .executeTakeFirst();
     }
 
-    async updateByLogin(login: string, data: UserUpdate) {
+    async updateByLogin(login: string, data: UserUpdate): Promise<void> {
         await this.db
-        .updateTable('users')
-        .set(data)
-        .where('deleted_at', 'is', null)
-        .where('login', '=', login)
-        .execute();
+            .updateTable('users')
+            .set(data)
+            .where('deleted_at', 'is', null)
+            .where('login', '=', login)
+            .execute();
     }
     
-    async removeByLogin(login: string) {
+    async removeByLogin(login: string): Promise<void> {
         await this.db
-        .updateTable("users")
-        .set({
-            deleted_at: new Date
-        })
-        .where('deleted_at', 'is', null)
-        .where('login', '=', login)
-        .execute();
+            .updateTable("users")
+            .set({
+                deleted_at: new Date
+            })
+            .where('deleted_at', 'is', null)
+            .where('login', '=', login)
+            .execute();
     }
 
-    async removeHardByLogin(login: string) {
+    async removeHardByLogin(login: string): Promise<void> {
         await this.db
-        .deleteFrom("users")
-        .where('login', '=', login)
-        .execute();
+            .deleteFrom("users")
+            .where('login', '=', login)
+            .execute();
     }
 }

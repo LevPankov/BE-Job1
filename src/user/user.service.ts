@@ -1,8 +1,10 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { UpdateUserDto } from './dto/create-user.dto';
 import { UserRepository } from './user.repository';
-import { PasswordService } from '../utils/password-hasher.util';
-import { UserUpdate } from '../database/types';
+import { PasswordService } from '../common/utils/password-hasher.util';
+import { User, UserUpdate } from '../database/types';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { UserEnteredInfoResDto } from './dto/user-entered-info.res.dto.';
+import { UserInfoResDto } from './dto/user-info.res.dto';
 
 @Injectable()
 export class UserService {
@@ -10,7 +12,7 @@ export class UserService {
         private readonly userRepository : UserRepository,
     ) {}
     
-    async getAll(page: number) {
+    async getAll(page: number): Promise<UserEnteredInfoResDto[] | User[]>  {
         if (page == -1) {
             return await this.userRepository.getAll();
         }
@@ -26,7 +28,7 @@ export class UserService {
         return await this.userRepository.getAllPaginated(page);
     }
     
-    async getByLogin(login : string) {
+    async getByLogin(login : string): Promise<UserInfoResDto> {
         const user = await this.userRepository.getByLogin(login);
         
         if (!user) {
@@ -36,7 +38,7 @@ export class UserService {
         return user;
     }
     
-    async updateByLogin(login: string, data: UpdateUserDto) {
+    async updateByLogin(login: string, data: UpdateUserDto): Promise<void> {
         const user = await this.userRepository.getByLoginWithDeleted(login);
         if (!user){
             throw new BadRequestException('Login is incorrect')
@@ -57,11 +59,11 @@ export class UserService {
        return this.userRepository.updateByLogin(login, userUpdate);
     }
     
-    removeByLogin(login: string) {
-        return this.userRepository.removeByLogin(login);
+    removeByLogin(login: string): void {
+        this.userRepository.removeByLogin(login);
     }
 
-    removeHardByLogin(login: string) {
-        return this.userRepository.removeHardByLogin(login);
+    removeHardByLogin(login: string): void {
+        this.userRepository.removeHardByLogin(login);
     }
 }

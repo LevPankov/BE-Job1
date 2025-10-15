@@ -1,6 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { Database, NewRefreshToken, NewUser } from '../database/types';
+import { Database, NewRefreshToken, NewUser, RefreshToken, User } from '../database/types';
 import { Kysely } from 'kysely';
+import { UserInfoResDto } from '../user/dto/user-info.res.dto';
 
 @Injectable()
 export class AuthRepository {
@@ -8,14 +9,14 @@ export class AuthRepository {
         @Inject('KYSELY_DB') private readonly db: Kysely<Database>,
     ) {}
     
-    async create(data: NewUser) {
-        return await this.db
+    async create(data: NewUser): Promise<void> {
+        await this.db
             .insertInto('users')
             .values(data)
             .executeTakeFirst();
     }
     
-    async getById(id: number) {
+    async getById(id: number): Promise<UserInfoResDto | undefined> {
         return await this.db
             .selectFrom("users")
             .select(['id', 'login', 'email', 'age', 'description', 'password_hash'])
@@ -24,7 +25,7 @@ export class AuthRepository {
             .executeTakeFirst();
     }
     
-    async getByLogin(login: string) {
+    async getByLogin(login: string): Promise<UserInfoResDto | undefined> {
         return await this.db
             .selectFrom("users")
             .select(['id', 'login', 'email', 'age', 'description', 'password_hash'])
@@ -33,7 +34,7 @@ export class AuthRepository {
             .executeTakeFirst();
     }
     
-    async getByLoginWithDeleted(login: string) {
+    async getByLoginWithDeleted(login: string): Promise<User | undefined> {
         return await this.db
             .selectFrom("users")
             .selectAll()
@@ -41,8 +42,8 @@ export class AuthRepository {
             .executeTakeFirst();
     }
 
-    async createToken(data: NewRefreshToken) {
-        return await this.db
+    async createToken(data: NewRefreshToken): Promise<void> {
+        await this.db
             .insertInto('refresh_tokens')
             .values({
                 user_id: data.user_id,
@@ -53,7 +54,7 @@ export class AuthRepository {
             .execute();
     }
 
-    async getValidToken(token: string) {
+    async getValidToken(token: string): Promise<RefreshToken | undefined> {
         return await this.db
             .selectFrom('refresh_tokens')
             .selectAll()

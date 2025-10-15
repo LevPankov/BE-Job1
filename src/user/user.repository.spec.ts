@@ -3,7 +3,7 @@ import { UserRepository } from './user.repository';
 import { NotFoundException } from '@nestjs/common';
 import { Kysely } from 'kysely';
 import { Database } from '../database/types';
-import { PasswordService } from '../utils/password-hasher.util';
+import { PasswordService } from '../common/utils/password-hasher.util';
 
 const mockKysely = {
   selectFrom: jest.fn(),

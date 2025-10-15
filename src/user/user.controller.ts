@@ -1,8 +1,12 @@
-import { Body, Controller, Delete, Get, ParseIntPipe, Patch, Query, Request, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, ParseIntPipe, Patch, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiResponse } from '@nestjs/swagger';
 import { AuthGuard } from '../auth/auth.guard';
-import { UpdateUserDto } from './dto/create-user.dto';
 import { UserService } from '../user/user.service';
+import { User } from '../common/decorators/user.decorator';
+import { UserLoginDto } from './dto/user-login.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { UserEnteredInfoResDto } from './dto/user-entered-info.res.dto.';
+import { UserInfoResDto } from './dto/user-info.res.dto';
 
 @UseGuards(AuthGuard)
 @ApiBearerAuth('JWT-auth')
@@ -15,8 +19,7 @@ export class UserController {
 
     @Get('get/my')
     @ApiResponse({ status: 200, description: 'Returns user data' })
-    getpPofile(@Request() req) {
-        const login = req.user.login;
+    getpPofile(@User('login') login: string): Promise<UserInfoResDto> {
         return this.userService.getByLogin(login);
     }
 
@@ -24,15 +27,15 @@ export class UserController {
     @ApiResponse({ status: 200, description: 'Returns page with 3 user items' })
     @ApiResponse({ status: 400, description: 'Page numbering starts from 1' })
     @ApiResponse({ status: 400, description: 'Validation failed (numeric string is expected)' })
-    getAll(@Query('page', ParseIntPipe) page: number) {
+    getAll(@Query('page', ParseIntPipe) page: number): Promise<UserEnteredInfoResDto[]> {
         return this.userService.getAll(page);
     }
     
     @Get('get')
     @ApiResponse({ status: 200, description: 'User data without password_hash' })
     @ApiResponse({ status: 404, description: 'User not found' })
-    async findProfileByLogin(@Query('login') login: string) {
-        const { password_hash, ...data } = await this.userService.getByLogin(login);
+    async findProfileByLogin(@Query() userLoginDto: UserLoginDto): Promise<UserEnteredInfoResDto> {
+        const { password_hash, ...data } = await this.userService.getByLogin(userLoginDto.login);
         return data;
     }
 
@@ -40,22 +43,19 @@ export class UserController {
     @ApiBody({ type: UpdateUserDto })
     @ApiResponse({ status: 200, description: 'Success!' })
     @ApiResponse({ status: 400, description: 'Login is incorrect' })
-    updateProfileByLogin(@Request() req, @Body() updateUserDto: UpdateUserDto ) {
-        const login = req.user.login;
-        return this.userService.updateByLogin(login, updateUserDto);
+    updateProfileByLogin(@User('login') login: string, @Body() updateUserDto: UpdateUserDto): void {
+        this.userService.updateByLogin(login, updateUserDto);
     }
 
     @Delete('delete')
     @ApiResponse({ status: 200, description: 'Success!' })
-    deleteProfileByLogin(@Request() req) {
-        const login = req.user.login;
-        return this.userService.removeByLogin(login);
+    deleteProfileByLogin(@User('login') login: string): void {
+        this.userService.removeByLogin(login);
     }
     
     @Delete('hard-delete')
     @ApiResponse({ status: 200, description: 'Success!' })
-    hardDeleteProfileByLogin(@Request() req) {
-        const login = req.user.login;
-        return this.userService.removeHardByLogin(login);
+    hardDeleteProfileByLogin(@User('login') login: string): void {
+        this.userService.removeHardByLogin(login);
     }
 }
