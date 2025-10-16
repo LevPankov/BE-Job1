@@ -51,10 +51,8 @@ export class AuthController {
 
     @Post('logout-all')
     @UseGuards(AuthGuard)
-    @ApiBody({ type: RefreshTokenDto })
     @ApiResponse({ status: 201, description: 'Successfully logged out from all devices' })
     logoutAll(@User('sub', ParseIntPipe) id: number): void {
-        console.log(id);
         return this.authService.logoutAll(id);
     }
 }
