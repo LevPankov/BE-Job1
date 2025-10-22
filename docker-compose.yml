@@ -1,18 +1,29 @@
-services: # Секция, где мы объявляем все наши сервисы (контейнеры)
-  
-  db: # Наш второй сервис - база данных PostgreSQL
-    image: postgres:15-alpine # Используем официальный образ Postgres на Alpine
+services:
+  db:
+    image: postgres:15-alpine
     container_name: postgres-container
-    environment: # Критически важные переменные для первоначальной настройки Postgres
+    environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: mydb
     ports:
-      - "5432:5432" # Пробрасываем порт БД, чтобы можно было подключиться с хоста (например, DBeaver, pgAdmin)
+      - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data # Сохраняем данные БД в именованном томе, чтобы они не пропали после остановки контейнера
-      - ./src/database/init.sql:/docker-entrypoint-initdb.d/init.sql # Запуск файла для создания таблиц
+      - postgres_data:/var/lib/postgresql/data
+      - ./src/database/init.sql:/docker-entrypoint-initdb.d/init.sql
 
-# Объявляем тома, которые используются нашими сервисами
+  minio:
+    image: minio/minio
+    command: server --console-address ":9001" /data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_storage:/data
+    environment:
+       MINIO_ROOT_USER: minioadmin
+       MINIO_ROOT_PASSWORD: minioadmin
+       
 volumes:
-  postgres_data: # Именованный том для хранения данных PostgreSQL
+  postgres_data:
+  minio_storage:

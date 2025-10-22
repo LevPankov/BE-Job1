@@ -1,8 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UserRepository } from './user.repository';
 import { NotFoundException } from '@nestjs/common';
-import { Kysely } from 'kysely';
-import { Database } from '../database/types';
+//import { Kysely } from 'kysely';
+//import { Database } from '../providers/database/types';
 import { PasswordService } from '../common/utils/password-hasher.util';
 
 const mockKysely = {
@@ -14,7 +14,7 @@ const mockKysely = {
 
 describe('UserRepository', () => {
   let userRepository: UserRepository;
-  let kysely: jest.Mocked<Kysely<Database>>;
+  //let kysely: jest.Mocked<Kysely<Database>>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -25,7 +25,7 @@ describe('UserRepository', () => {
     }).compile();
 
     userRepository = module.get<UserRepository>(UserRepository);
-    kysely = module.get('KYSELY_DB');
+    //kysely = module.get('KYSELY_DB');
 
     jest.clearAllMocks();
   });
@@ -36,40 +36,44 @@ describe('UserRepository', () => {
 
   it('should return user when it found', async () => {
     const hash_pass = PasswordService.hashPassword('qwerty');
-    const mockUser = { 
-        id: 1, 
-        login: 'Oleg',
-        password: hash_pass,
-        email: 'oleg@mail.ru',
-        age: 23,
-        description: "tralala"
-      };
+    const mockUser = {
+      id: 1,
+      login: 'Oleg',
+      password: hash_pass,
+      email: 'oleg@mail.ru',
+      age: 23,
+      description: 'tralala',
+    };
 
-      const mockSelect = {
-        selectAll: jest.fn().mockReturnThis(),
-        where: jest.fn().mockReturnThis(),
-        executeTakeFirst: jest.fn().mockResolvedValue(mockUser),
-      };
+    const mockSelect = {
+      selectAll: jest.fn().mockReturnThis(),
+      where: jest.fn().mockReturnThis(),
+      executeTakeFirst: jest.fn().mockResolvedValue(mockUser),
+    };
 
-      mockKysely.selectFrom.mockReturnValue(mockSelect as any);
+    mockKysely.selectFrom.mockReturnValue(mockSelect as any);
 
-      const result = await userRepository.getByLogin('Oleg');
+    const result = await userRepository.getByLogin('Oleg');
 
-      expect(mockKysely.selectFrom).toHaveBeenCalledWith('users');
-      expect(mockSelect.where).toHaveBeenCalledWith('login', '=', 'Oleg');
-      expect(result).toEqual(mockUser);
-  })
+    expect(mockKysely.selectFrom).toHaveBeenCalledWith('users');
+    expect(mockSelect.where).toHaveBeenCalledWith('login', '=', 'Oleg');
+    expect(result).toEqual(mockUser);
+  });
 
   it('should throw exception when user not found', async () => {
-      const mockSelect = {
-        selectAll: jest.fn().mockReturnThis(),
-        where: jest.fn().mockReturnThis(),
-        executeTakeFirst: jest.fn().mockResolvedValue(undefined),
-      };
+    const mockSelect = {
+      selectAll: jest.fn().mockReturnThis(),
+      where: jest.fn().mockReturnThis(),
+      executeTakeFirst: jest.fn().mockResolvedValue(undefined),
+    };
 
-      mockKysely.selectFrom.mockReturnValue(mockSelect as any);
+    mockKysely.selectFrom.mockReturnValue(mockSelect as any);
 
-      await expect(userRepository.getByLogin('Kolya')).rejects.toThrow(NotFoundException);
-      await expect(userRepository.getByLogin('Kolya')).rejects.toThrow('User with login Kolya not found');
-    });
+    await expect(userRepository.getByLogin('Kolya')).rejects.toThrow(
+      NotFoundException,
+    );
+    await expect(userRepository.getByLogin('Kolya')).rejects.toThrow(
+      'User with login Kolya not found',
+    );
+  });
 });

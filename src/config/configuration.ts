@@ -5,8 +5,15 @@ export default () => ({
     refreshSecret: process.env.JWT_REFRESH_SECRET,
     refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
   },
-  
+
   database: {
     url: process.env.DATABASE_URL,
+  },
+
+  minio: {
+    endpoint: process.env.MINIO_ENDPOINT || 'http://127.0.0.1:9000',
+    region: process.env.MINIO_REGION_KEY || 'ru-central1',
+    accessKeyId: process.env.MINIO_ACCESS_KEY || 'minioadmin',
+    secretAccessKey: process.env.MINIO_SECRET_KEY || 'minioadmin',
   },
 });

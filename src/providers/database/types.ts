@@ -1,18 +1,18 @@
 import { Generated, Selectable, Insertable, Updateable } from 'kysely';
 
 export interface Database {
-    users: UserTable; 
-    refresh_tokens: RefreshTokenTable;
+  users: UserTable;
+  refresh_tokens: RefreshTokenTable;
 }
 
 export interface UserTable {
-    id: Generated<number>;
-    login: string;
-    email: string;
-    password_hash: string;
-    age: number;
-    description: string | null;
-    deleted_at: Date | null;
+  id: Generated<number>;
+  login: string;
+  email: string;
+  password_hash: string;
+  age: number;
+  description: string | null;
+  deleted_at: Date | null;
 }
 
 export type User = Selectable<UserTable>;
