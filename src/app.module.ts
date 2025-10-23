@@ -5,19 +5,17 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import configuration from './config/configuration';
 import { DatabaseModule } from './providers/database/database.module';
 import { JwtModule } from '@nestjs/jwt';
+import { FileUploaderModule } from './file-uploader/file-uploader.module';
+import { FilesModule } from './providers/files/files.module';
 
 @Module({
   imports: [
-    DatabaseModule,
-    UserModule,
-    AuthModule,
     ConfigModule.forRoot({
       isGlobal: true,
       load: [configuration],
       envFilePath: '.env',
     }),
     JwtModule.registerAsync({
-      imports: [ConfigModule],
       global: true,
       useFactory: (configService: ConfigService) => ({
         secret: configService.get<string>('jwt.accessSecret'),
@@ -27,6 +25,11 @@ import { JwtModule } from '@nestjs/jwt';
       }),
       inject: [ConfigService],
     }),
+    DatabaseModule,
+    FilesModule,
+    UserModule,
+    AuthModule,
+    FileUploaderModule,
   ],
 })
 export class AppModule {}

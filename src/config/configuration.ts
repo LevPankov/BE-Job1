@@ -12,7 +12,7 @@ export default () => ({
 
   minio: {
     endpoint: process.env.MINIO_ENDPOINT || 'http://127.0.0.1:9000',
-    region: process.env.MINIO_REGION_KEY || 'ru-central1',
+    region: process.env.MINIO_REGION || 'ru-central1',
     accessKeyId: process.env.MINIO_ACCESS_KEY || 'minioadmin',
     secretAccessKey: process.env.MINIO_SECRET_KEY || 'minioadmin',
   },
