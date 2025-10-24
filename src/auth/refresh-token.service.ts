@@ -16,7 +16,7 @@ export class RefreshTokenService {
   }
 
   async createToken(
-    userId: number,
+    userId: string,
     expiresInDays: number = 7,
   ): Promise<string> {
     const token = this.generateToken();
@@ -46,7 +46,7 @@ export class RefreshTokenService {
     this.authRepository.revokeToken(tokenHash);
   }
 
-  revokeAllUserTokens(userId: number): void {
+  revokeAllUserTokens(userId: string): void {
     this.authRepository.revokeAllUserTokens(userId);
   }
 

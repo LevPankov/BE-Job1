@@ -89,11 +89,11 @@ export class AuthService {
     this.refreshTokenService.revokeToken(refreshToken);
   }
 
-  logoutAll(userId: number): void {
+  logoutAll(userId: string): void {
     this.refreshTokenService.revokeAllUserTokens(userId);
   }
 
-  private generateAccessToken(userId: number, login: string): Promise<string> {
+  private generateAccessToken(userId: string, login: string): Promise<string> {
     const payload = { sub: userId, login: login };
     return this.jwtService.signAsync(payload, {
       secret: this.configService.get('jwt.accessSecret'),

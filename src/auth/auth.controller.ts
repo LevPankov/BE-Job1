@@ -1,10 +1,4 @@
-import {
-  Body,
-  Controller,
-  ParseIntPipe,
-  Post,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Post, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from '../user/dto/create-user.dto';
 import { ApiBearerAuth, ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
@@ -64,7 +58,7 @@ export class AuthController {
     status: 201,
     description: 'Successfully logged out from all devices',
   })
-  logoutAll(@User('sub', ParseIntPipe) id: number): void {
+  logoutAll(@User('sub') id: string): void {
     return this.authService.logoutAll(id);
   }
 }

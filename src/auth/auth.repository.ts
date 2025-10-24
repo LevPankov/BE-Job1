@@ -17,7 +17,7 @@ export class AuthRepository {
     await this.db.insertInto('users').values(data).executeTakeFirst();
   }
 
-  async getById(id: number): Promise<UserInfoResDto | undefined> {
+  async getById(id: string): Promise<UserInfoResDto | undefined> {
     return await this.db
       .selectFrom('users')
       .select(['id', 'login', 'email', 'age', 'description', 'password_hash'])
@@ -73,7 +73,7 @@ export class AuthRepository {
       .execute();
   }
 
-  async revokeAllUserTokens(userId: number): Promise<void> {
+  async revokeAllUserTokens(userId: string): Promise<void> {
     await this.db
       .updateTable('refresh_tokens')
       .set({ revoked: true })
