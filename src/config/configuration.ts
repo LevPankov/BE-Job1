@@ -1,3 +1,6 @@
+// можно было бы использовать registerAs из nestjs, было бы примерно то же самое
+// но для маленького приложения так тоже норм
+
 export default () => ({
   jwt: {
     accessSecret: process.env.JWT_ACCESS_SECRET,
