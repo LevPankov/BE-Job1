@@ -8,6 +8,7 @@ import { AuthGuard } from './auth.guard';
 import { User } from '../common/decorators/user.decorator';
 import { RefreshTokenResDto } from './dto/refresh-token.res.dto';
 
+// Тут тоже, на ручках не долджна возвращаться DTO-шка
 @ApiTags('Authentication')
 @Controller('auth')
 export class AuthController {
@@ -27,6 +28,7 @@ export class AuthController {
   @ApiResponse({ status: 201, description: 'Return access and refresh tokens' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'User not found' })
+  // Назови плиз DTO-шку также как параметр SignInDto
   signIn(@Body() signInDto: AuthUserDto): Promise<RefreshTokenResDto> {
     return this.authService.signIn(signInDto.login, signInDto.password);
   }
