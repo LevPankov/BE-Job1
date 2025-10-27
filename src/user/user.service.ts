@@ -28,8 +28,6 @@ export class UserService {
       throw new BadRequestException('Page numbering starts from 1');
     }
 
-    // Нужно переписать в один метод. Вместо двух getAll и getAllPaginated должен получить один getAllPaginated
-    // Вот здесь (https://plausible-cyclamen-6e0.notion.site/2792857f7b09801e8ce5f6bcd104dd73) есть гайд по пагинации на TypeORM. Его можно адаптировать под kysely
     return await this.userRepository.getAllPaginated(page);
   }
 

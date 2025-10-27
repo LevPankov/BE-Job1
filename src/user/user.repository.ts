@@ -69,7 +69,6 @@ export class UserRepository {
     await this.db
       .updateTable('users')
       .set({
-        // Не уверен, что нужно без (). Проверь плиз в бдшке что сохранятся. Как будто нужно new Date()
         deleted_at: new Date(),
       })
       .where('deleted_at', 'is', null)
