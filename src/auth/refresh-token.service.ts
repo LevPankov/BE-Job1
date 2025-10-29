@@ -5,7 +5,7 @@ import { AuthRepository } from './auth.repository';
 
 @Injectable()
 export class RefreshTokenService {
-  constructor(private authRepository: AuthRepository) {}
+  constructor(private authRepository: AuthRepository) { }
 
   generateToken(): string {
     return crypto.randomBytes(40).toString('hex');

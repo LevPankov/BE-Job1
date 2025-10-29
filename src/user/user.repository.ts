@@ -1,19 +1,16 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Database, User, UserUpdate } from '../providers/database/types';
 import { Kysely } from 'kysely';
-import { UserInfoResDto } from './dto/user-info.res.dto';
-import { UserEnteredInfoResDto } from './dto/user-entered-info.res.dto.';
+import { PROVIDERS } from '../common/constants/providers';
+import { UserInfo, UserPublicInfo } from '../common/interfaces/user-db-types';
 
-// консткакты пишутся в таком формате PAGIGANATION_LIMIT
-// лучше переименовать в COUNT_USERS_ON_PAGE
-const paginationLimit = 3;
+const COUNT_USERS_ON_PAGE = 3;
 
 @Injectable()
 export class UserRepository {
-  // Добавь токен в common, чтобы можно было переиспользовать его и внедрять везде правильный сервис
-  constructor(@Inject('KYSELY_DB') private readonly db: Kysely<Database>) {}
+  constructor(@Inject(PROVIDERS.DATABASE) private readonly db: Kysely<Database>) { }
 
-  async getAll(): Promise<UserEnteredInfoResDto[]> {
+  async getAll(): Promise<UserPublicInfo[]> {
     return await this.db
       .selectFrom('users')
       .select(['login', 'email', 'age', 'description'])
@@ -21,13 +18,13 @@ export class UserRepository {
       .execute();
   }
 
-  async getAllPaginated(page: number): Promise<UserEnteredInfoResDto[]> {
+  async getAllPaginated(page: number): Promise<UserPublicInfo[]> {
     return await this.db
       .selectFrom('users')
       .select(['login', 'email', 'age', 'description'])
       .where('deleted_at', 'is', null)
-      .offset((page - 1) * paginationLimit)
-      .limit(paginationLimit)
+      .offset((page - 1) * COUNT_USERS_ON_PAGE)
+      .limit(COUNT_USERS_ON_PAGE)
       .execute();
   }
 
@@ -35,11 +32,7 @@ export class UserRepository {
     return await this.db.selectFrom('users').selectAll().execute();
   }
 
-  // Весь репозиторий горит красным из-за типизации => что-то не так =)
-  // Что-то не так = ты возвращаешь DTO, а не интерфейсы, что тебе предлагает Kysely. Используй их
-  // Пример типизации export type UserByLogin = Pick<User, 'id' | 'login' | 'age' | 'description' | 'email' | 'password_hash'>
-  // Promise<UserByLogin | undefined>
-  async getByLogin(login: string): Promise<UserInfoResDto | undefined> {
+  async getByLogin(login: string): Promise<UserInfo | undefined> {
     return await this.db
       .selectFrom('users')
       .select(['id', 'login', 'email', 'age', 'description', 'password_hash'])
@@ -69,7 +62,6 @@ export class UserRepository {
     await this.db
       .updateTable('users')
       .set({
-        // Не уверен, что нужно без (). Проверь плиз в бдшке что сохранятся. Как будто нужно new Date()
         deleted_at: new Date(),
       })
       .where('deleted_at', 'is', null)

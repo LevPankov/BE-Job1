@@ -2,17 +2,16 @@ import { Body, Controller, Post, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from '../user/dto/create-user.dto';
 import { ApiBearerAuth, ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { AuthUserDto } from './dto/auth-user.dto';
+import { SignInDto } from './dto/sign-in.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto ';
 import { AuthGuard } from './auth.guard';
 import { User } from '../common/decorators/user.decorator';
 import { RefreshTokenResDto } from './dto/refresh-token.res.dto';
 
-// Тут тоже, на ручках не долджна возвращаться DTO-шка
 @ApiTags('Authentication')
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(private authService: AuthService) { }
 
   @Post('reg')
   @ApiBody({ type: CreateUserDto })
@@ -24,12 +23,11 @@ export class AuthController {
   }
 
   @Post('login')
-  @ApiBody({ type: AuthUserDto })
+  @ApiBody({ type: SignInDto })
   @ApiResponse({ status: 201, description: 'Return access and refresh tokens' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'User not found' })
-  // Назови плиз DTO-шку также как параметр SignInDto
-  signIn(@Body() signInDto: AuthUserDto): Promise<RefreshTokenResDto> {
+  signIn(@Body() signInDto: SignInDto): Promise<RefreshTokenResDto> {
     return this.authService.signIn(signInDto.login, signInDto.password);
   }
 

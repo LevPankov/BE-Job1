@@ -1,17 +1,12 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { PasswordService } from '../common/utils/password-hasher.util';
 import { CreateUserDto } from '../user/dto/create-user.dto';
 import { NewUser } from '../providers/database/types';
 import { AuthRepository } from './auth.repository';
 import { RefreshTokenService } from './refresh-token.service';
 import { ConfigService } from '@nestjs/config';
 import { RefreshTokenResDto } from './dto/refresh-token.res.dto';
+import { hashPassword, validatePassword } from 'src/common/utils/password-hasher.util';
 
 @Injectable()
 export class AuthService {
@@ -20,7 +15,7 @@ export class AuthService {
     private jwtService: JwtService,
     private configService: ConfigService,
     private refreshTokenService: RefreshTokenService,
-  ) {}
+  ) { }
 
   async createProfile(data: CreateUserDto): Promise<void> {
     const user = await this.authRepository.getByLoginWithDeleted(data.login);
@@ -28,11 +23,11 @@ export class AuthService {
       throw new BadRequestException(`Login ${data.login} is already exists`);
     }
 
-    const hashPassword = await PasswordService.hashPassword(data.password);
+    const hashedPassword = await hashPassword(data.password);
     const newUser: NewUser = {
       login: data.login,
       email: data.email,
-      password_hash: hashPassword,
+      password_hash: hashedPassword,
       age: data.age,
       description: data.description,
     };
@@ -45,7 +40,7 @@ export class AuthService {
     if (!user) {
       throw new NotFoundException(`User with login ${login} not found`);
     }
-    if (!(await PasswordService.validatePassword(pass, user.password_hash))) {
+    if (!(await validatePassword(pass, user.password_hash))) {
       throw new UnauthorizedException();
     }
 

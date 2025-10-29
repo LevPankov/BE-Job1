@@ -1,23 +1,18 @@
 import { Inject, Injectable } from '@nestjs/common';
-import {
-  Database,
-  NewRefreshToken,
-  NewUser,
-  RefreshToken,
-  User,
-} from '../providers/database/types';
+import { Database, NewRefreshToken, NewUser, RefreshToken, User } from '../providers/database/types';
 import { Kysely } from 'kysely';
-import { UserInfoResDto } from '../user/dto/user-info.res.dto';
+import { PROVIDERS } from '../common/constants/providers';
+import { UserInfo } from '../common/interfaces/user-db-types';
 
 @Injectable()
 export class AuthRepository {
-  constructor(@Inject('KYSELY_DB') private readonly db: Kysely<Database>) {}
+  constructor(@Inject(PROVIDERS.DATABASE) private readonly db: Kysely<Database>) { }
 
   async create(data: NewUser): Promise<void> {
     await this.db.insertInto('users').values(data).executeTakeFirst();
   }
 
-  async getById(id: string): Promise<UserInfoResDto | undefined> {
+  async getById(id: string): Promise<UserInfo | undefined> {
     return await this.db
       .selectFrom('users')
       .select(['id', 'login', 'email', 'age', 'description', 'password_hash'])
@@ -26,7 +21,7 @@ export class AuthRepository {
       .executeTakeFirst();
   }
 
-  async getByLogin(login: string): Promise<UserInfoResDto | undefined> {
+  async getByLogin(login: string): Promise<UserInfo | undefined> {
     return await this.db
       .selectFrom('users')
       .select(['id', 'login', 'email', 'age', 'description', 'password_hash'])

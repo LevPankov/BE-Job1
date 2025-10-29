@@ -1,13 +1,4 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  ParseIntPipe,
-  Patch,
-  Query,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Delete, Get, ParseIntPipe, Patch, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiQuery, ApiResponse } from '@nestjs/swagger';
 import { AuthGuard } from '../auth/auth.guard';
 import { UserService } from '../user/user.service';
@@ -17,19 +8,16 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { UserEnteredInfoResDto } from './dto/user-entered-info.res.dto.';
 import { UserInfoResDto } from './dto/user-info.res.dto';
 
-// Ко всем ручками относится: DTO не должен возвращаться. DTO нужно накидывать на валидацию входящих данных
-// Нужно все DTO которые в ответе переписать на интерфейсы
 @UseGuards(AuthGuard)
 @ApiBearerAuth('JWT-auth')
 @ApiResponse({ status: 401, description: 'Unauthorized' })
 @Controller('user')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(private readonly userService: UserService) { }
 
   @Get('get/my')
   @ApiResponse({ status: 200, description: 'Returns user data' })
-  // поправь имя ручки
-  getpPofile(@User('login') login: string): Promise<UserInfoResDto> {
+  getPofile(@User('login') login: string): Promise<UserInfoResDto> {
     return this.userService.getByLogin(login);
   }
 
@@ -46,12 +34,10 @@ export class UserController {
     return this.userService.getAll(page);
   }
 
-  // Странное название ручки. Не пойму что она делает. Как будто один в один get/my
   @Get('get')
   @ApiQuery({ name: 'login' })
   @ApiResponse({ status: 200, description: 'User data without password_hash' })
   @ApiResponse({ status: 404, description: 'User not found' })
-  // Вот здесь хорошо DTO используется в получаемых данных
   async findProfileByLogin(
     @Query() userLoginDto: UserLoginDto,
   ): Promise<UserEnteredInfoResDto> {

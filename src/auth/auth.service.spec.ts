@@ -1,9 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthService } from './auth.service';
 import { UserService } from '../user/user.service';
-import { PasswordService } from '../common/utils/password-hasher.util';
 import { JwtService } from '@nestjs/jwt';
 import { UnauthorizedException } from '@nestjs/common';
+import { hashPassword, validatePassword } from 'src/common/utils/password-hasher.util';
 
 const mockUserService = {
   getByLogin: jest.fn(),
@@ -36,7 +36,7 @@ describe('AuthService', () => {
     authService = module.get<AuthService>(AuthService);
     userService = module.get<UserService>(UserService);
     jwtService = module.get<JwtService>(JwtService);
-    
+
     jest.clearAllMocks();
   });
 
@@ -44,7 +44,7 @@ describe('AuthService', () => {
     it('should return  JWT token with right data', async () => {
       const login = 'testuser';
       const password = 'correctpassword';
-      const password_hash = PasswordService.hashPassword(password);
+      const password_hash = hashPassword(password);
 
       const mockUser = {
         id: 1,
@@ -66,11 +66,11 @@ describe('AuthService', () => {
       expect(userService.getByLogin).toHaveBeenCalledWith('testuser');
       expect(userService.getByLogin).toHaveBeenCalledTimes(1);
 
-      expect(PasswordService.validatePassword).toHaveBeenCalledWith(
+      expect(validatePassword).toHaveBeenCalledWith(
         password,
         password_hash
       );
-      expect(PasswordService.validatePassword).toHaveBeenCalledTimes(1);
+      expect(validatePassword).toHaveBeenCalledTimes(1);
 
       expect(jwtService.signAsync).toHaveBeenCalledWith({
         sub: 1,
@@ -84,7 +84,7 @@ describe('AuthService', () => {
     it('should throw UnauthorizedException in bad password', async () => {
       const login = 'testuser';
       const password = 'wrongpassword';
-      
+
       const mockUser = {
         id: 1,
         login: 'testuser',
@@ -96,7 +96,7 @@ describe('AuthService', () => {
       await expect(authService.signIn(login, password))
         .rejects
         .toThrow(UnauthorizedException);
-      
+
       await expect(authService.signIn(login, password))
         .rejects
         .toThrow();

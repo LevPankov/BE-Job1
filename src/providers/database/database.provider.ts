@@ -2,9 +2,10 @@ import { Provider } from '@nestjs/common';
 import { Kysely, PostgresDialect } from 'kysely';
 import { Pool } from 'pg';
 import { Database } from './types';
+import { PROVIDERS } from '../../common/constants/providers';
 
 export const KyselyProvider: Provider = {
-  provide: 'KYSELY_DB', // Уникальный токен для инъекции
+  provide: PROVIDERS.DATABASE, // Уникальный токен для инъекции
   useFactory: () => {
     return new Kysely<Database>({
       dialect: new PostgresDialect({

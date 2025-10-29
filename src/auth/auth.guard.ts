@@ -2,13 +2,14 @@ import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from
 import { JwtService } from "@nestjs/jwt";
 import { Request } from "express";
 import { ConfigService } from '@nestjs/config';
+import { JwtPayload } from '../common/interfaces/jwt-payload-type'
 
 @Injectable()
 export class AuthGuard implements CanActivate {
-    constructor (
+    constructor(
         private jwtSecvice: JwtService,
         private configService: ConfigService
-    ) {}
+    ) { }
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const request = context.switchToHttp().getRequest();
@@ -16,8 +17,11 @@ export class AuthGuard implements CanActivate {
         if (!token) {
             throw new UnauthorizedException();
         }
+        // if (await this.jwtBlacklistService.isTokenBlacklisted(token)) {
+        //     throw new UnauthorizedException('Token has been revoked');
+        // }
         try {
-            const payload = await this.jwtSecvice.verifyAsync(
+            const payload: JwtPayload = await this.jwtSecvice.verifyAsync(
                 token,
                 {
                     secret: this.configService.get<string>('jwt.accessSecret')
@@ -30,7 +34,7 @@ export class AuthGuard implements CanActivate {
         return true;
     }
 
-    private extractTokenFromHeader(request: Request) : string | undefined {
+    private extractTokenFromHeader(request: Request): string | undefined {
         const [type, token] = request.headers.authorization?.split(' ') ?? [];
         return type === 'Bearer' ? token : undefined;
     }

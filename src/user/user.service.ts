@@ -1,26 +1,24 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { UserRepository } from './user.repository';
-import { PasswordService } from '../common/utils/password-hasher.util';
 import { User, UserUpdate } from '../providers/database/types';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserEnteredInfoResDto } from './dto/user-entered-info.res.dto.';
 import { UserInfoResDto } from './dto/user-info.res.dto';
+import { hashPassword } from 'src/common/utils/password-hasher.util';
+
+const ALL_USERS_DEBUG_NUMBER = -1;
+const ALL_USERS_WITH_DELETED_DEBUG_NUMBER = -2;
 
 @Injectable()
 export class UserService {
-  constructor(private readonly userRepository: UserRepository) {}
+  constructor(private readonly userRepository: UserRepository) { }
 
   async getAll(page: number): Promise<UserEnteredInfoResDto[] | User[]> {
-    // Магические числа какие-то, не понимаю, что они делают. Добавь для них переменные
-    if (page == -1) {
+    if (page == ALL_USERS_DEBUG_NUMBER) {
       return await this.userRepository.getAll();
     }
 
-    if (page == -2) {
+    if (page == ALL_USERS_WITH_DELETED_DEBUG_NUMBER) {
       return await this.userRepository.getAllWithDeleted();
     }
 
@@ -28,8 +26,6 @@ export class UserService {
       throw new BadRequestException('Page numbering starts from 1');
     }
 
-    // Нужно переписать в один метод. Вместо двух getAll и getAllPaginated должен получить один getAllPaginated
-    // Вот здесь (https://plausible-cyclamen-6e0.notion.site/2792857f7b09801e8ce5f6bcd104dd73) есть гайд по пагинации на TypeORM. Его можно адаптировать под kysely
     return await this.userRepository.getAllPaginated(page);
   }
 
@@ -62,7 +58,7 @@ export class UserService {
       description: data.description,
     };
     if (data.password) {
-      userUpdate.password_hash = await PasswordService.hashPassword(
+      userUpdate.password_hash = await hashPassword(
         data.password,
       );
     }

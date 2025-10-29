@@ -4,6 +4,7 @@ export interface Database {
   users: UserTable;
   user_avatars: UserAvatarsTable;
   refresh_tokens: RefreshTokenTable;
+  jwt_blacklist: JwtBlacklistTable;
 }
 
 export interface UserTable {
@@ -45,3 +46,10 @@ export interface RefreshTokenTable {
 export type RefreshToken = Selectable<RefreshTokenTable>;
 export type NewRefreshToken = Insertable<RefreshTokenTable>;
 export type RefreshTokenUpdate = Updateable<RefreshTokenTable>;
+
+export interface JwtBlacklistTable {
+  id: Generated<number>;
+  token: string;
+  expires_at: Date;
+  created_at: Generated<Date>;
+}

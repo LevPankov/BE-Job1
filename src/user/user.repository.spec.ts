@@ -1,9 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UserRepository } from './user.repository';
 import { NotFoundException } from '@nestjs/common';
+import { hashPassword } from 'src/common/utils/password-hasher.util';
 //import { Kysely } from 'kysely';
 //import { Database } from '../providers/database/types';
-import { PasswordService } from '../common/utils/password-hasher.util';
 
 const mockKysely = {
   selectFrom: jest.fn(),
@@ -35,7 +35,7 @@ describe('UserRepository', () => {
   });
 
   it('should return user when it found', async () => {
-    const hash_pass = PasswordService.hashPassword('qwerty');
+    const hash_pass = hashPassword('qwerty');
     const mockUser = {
       id: 1,
       login: 'Oleg',

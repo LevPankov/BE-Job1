@@ -9,4 +9,4 @@ import { RefreshTokenService } from './refresh-token.service';
   controllers: [AuthController],
   providers: [AuthRepository, AuthService, RefreshTokenService]
 })
-export class AuthModule {}
+export class AuthModule { }
