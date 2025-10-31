@@ -17,10 +17,16 @@ import { ApiBearerAuth } from '@nestjs/swagger';
 import { AuthGuard } from '../auth/auth.guard';
 import { User } from '../common/decorators/user.decorator';
 import { UserAvatarsResDto } from './dto/user-avatars-res.dto';
+import { UserWithLatestAvatar } from 'src/providers/database/types';
 
 @Controller('file-uploader')
 export class FileUploaderController {
   constructor(private fileUploaderService: FileUploaderService) {}
+
+  @Get('most-active')
+  getMostActiveUsers(): Promise<UserWithLatestAvatar[]> {
+    return this.fileUploaderService.getMostActiveUsers();
+  }
 
   @Get('get/avatars')
   @UseGuards(AuthGuard)

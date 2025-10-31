@@ -1,13 +1,9 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { UploadFilePayloadDto } from '../providers/files/s3/dto/upload-file-payload.dto';
 import { IFileService } from '../providers/files/files.adapter';
 import { RemoveFilePayloadDto } from '../providers/files/s3/dto/remove-file-payload.dto';
 import { FileUploaderRepository } from './file-uploader.repository';
-import { NewUserAvatar } from '../providers/database/types';
+import { NewUserAvatar, UserWithLatestAvatar } from '../providers/database/types';
 import { UserAvatarsResDto } from './dto/user-avatars-res.dto';
 
 const maxAvatarsCount = 5;
@@ -19,18 +15,19 @@ export class FileUploaderService {
     private fileService: IFileService,
   ) {}
 
+  async getMostActiveUsers(): Promise<UserWithLatestAvatar[]> {
+    return await this.fileUploaderRepository.getMostActiveUsersWithAvatars(3, 18, 25);
+  }
+
   async getUserAvatars(userId: string): Promise<UserAvatarsResDto[]> {
     return await this.fileUploaderRepository.getAllUserAvatars(userId);
   }
 
   async uploadAvatar(userId: string, file: Express.Multer.File): Promise<void> {
-    const avatarsCount =
-      await this.fileUploaderRepository.getCountOfUserAvatars(userId);
+    const avatarsCount = await this.fileUploaderRepository.getCountOfUserAvatars(userId);
     console.log(avatarsCount);
     if (avatarsCount >= maxAvatarsCount) {
-      throw new BadRequestException(
-        `Too many avatars alredy exist. Max count equals ${maxAvatarsCount}`,
-      );
+      throw new BadRequestException(`Too many avatars alredy exist. Max count equals ${maxAvatarsCount}`);
     }
 
     let fileUploaded = false;
@@ -60,16 +57,11 @@ export class FileUploaderService {
       }
 
       if (!fileUploaded && dbRecordCreated) {
-        const avatar = await this.fileUploaderRepository.getAvatarByPath(
-          file.originalname,
-        );
+        const avatar = await this.fileUploaderRepository.getAvatarByPath(file.originalname);
         if (!avatar) {
           throw new Error('Something went wrong with uploadAvatar function');
         }
-        await this.fileUploaderRepository.removeHardUserAvatar(
-          userId,
-          avatar.avatar_path,
-        );
+        await this.fileUploaderRepository.removeHardUserAvatar(userId, avatar.avatar_path);
       }
 
       throw error;
@@ -81,8 +73,7 @@ export class FileUploaderService {
   }
 
   async removeHardAvatar(userId: string, avatarId: string): Promise<void> {
-    const userAvatar =
-      await this.fileUploaderRepository.getAvatarById(avatarId);
+    const userAvatar = await this.fileUploaderRepository.getAvatarById(avatarId);
     if (!userAvatar) {
       throw new NotFoundException("Such avatar doesn't exist");
     }

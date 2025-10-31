@@ -18,6 +18,15 @@ export interface UserTable {
   deleted_at: Date | null;
 }
 
+export interface UserWithLatestAvatar {
+  id: string;
+  login: string;
+  email: string;
+  age: number;
+  description: string;
+  avatar_path: string;
+}
+
 export type User = Selectable<UserTable>;
 export type NewUser = Insertable<UserTable>;
 export type UserUpdate = Updateable<UserTable>;
