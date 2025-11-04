@@ -16,7 +16,14 @@ export default () => ({
   minio: {
     endpoint: process.env.MINIO_ENDPOINT || 'http://127.0.0.1:9000',
     region: process.env.MINIO_REGION || 'ru-central1',
-    accessKeyId: process.env.MINIO_ACCESS_KEY || 'minioadmin',
-    secretAccessKey: process.env.MINIO_SECRET_KEY || 'minioadmin',
+    accessKeyId: process.env.MINIO_ACCESS_KEY,
+    secretAccessKey: process.env.MINIO_SECRET_KEY,
+  },
+
+  redis: {
+    host: process.env.REDIS_HOST,
+    port: process.env.REDIS_PORT,
+    password: process.env.REDIS_PASSWORD,
+    ttl: process.env.REDIS_CACHE_TTL || 30000,
   },
 });

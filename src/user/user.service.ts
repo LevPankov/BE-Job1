@@ -4,33 +4,52 @@ import { User, UserUpdate } from '../providers/database/types';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserEnteredInfoResDto } from './dto/user-entered-info.res.dto.';
 import { UserInfoResDto } from './dto/user-info.res.dto';
-import { hashPassword } from 'src/common/utils/password-hasher.util';
+import { hashPassword } from '../common/utils/password-hasher.util';
+import { RedisCacheService } from '../redis-cache/redis-cache.service';
 
-const ALL_USERS_DEBUG_NUMBER = -1;
 const ALL_USERS_WITH_DELETED_DEBUG_NUMBER = -2;
+const CACHE_KEY_FOR_ALL_USERS = 'users=';
+const CACHE_KEY_FOR_ALL_USERS_WITH_DELETED_DEBUG = 'users=-2';
+const CACHE_KEY_FOR_USER = 'user=';
 
 @Injectable()
 export class UserService {
-  constructor(private readonly userRepository: UserRepository) { }
+  constructor(
+    private readonly userRepository: UserRepository,
+    private readonly redisCache: RedisCacheService,
+  ) {}
 
   async getAll(page: number): Promise<UserEnteredInfoResDto[] | User[]> {
-    if (page == ALL_USERS_DEBUG_NUMBER) {
-      return await this.userRepository.getAll();
-    }
-
     if (page == ALL_USERS_WITH_DELETED_DEBUG_NUMBER) {
-      return await this.userRepository.getAllWithDeleted();
+      const cachedUsersWithDeletedDebug = await this.redisCache.get<User[]>(CACHE_KEY_FOR_ALL_USERS_WITH_DELETED_DEBUG);
+      if (cachedUsersWithDeletedDebug) {
+        return cachedUsersWithDeletedDebug;
+      }
+      const usersWithDeletedDebug = await this.userRepository.getAllWithDeleted();
+      this.redisCache.set(CACHE_KEY_FOR_ALL_USERS_WITH_DELETED_DEBUG, usersWithDeletedDebug);
+      return usersWithDeletedDebug;
     }
 
     if (page < 1) {
       throw new BadRequestException('Page numbering starts from 1');
     }
-
-    return await this.userRepository.getAllPaginated(page);
+    const cachedUsers = await this.redisCache.get<UserEnteredInfoResDto[]>(CACHE_KEY_FOR_ALL_USERS + page);
+    if (cachedUsers) {
+      return cachedUsers;
+    }
+    const users = await this.userRepository.getAllPaginated(page);
+    this.redisCache.set(CACHE_KEY_FOR_ALL_USERS + page, users);
+    return users;
   }
 
   async getByLogin(login: string): Promise<UserInfoResDto> {
+    const cachedUser = await this.redisCache.get<UserInfoResDto>(CACHE_KEY_FOR_USER + login);
+    if (cachedUser) {
+      return cachedUser;
+    }
+
     const user = await this.userRepository.getByLogin(login);
+    this.redisCache.set(CACHE_KEY_FOR_USER + login, user);
 
     if (!user) {
       throw new NotFoundException(`User with login ${login} not found`);
@@ -58,9 +77,7 @@ export class UserService {
       description: data.description,
     };
     if (data.password) {
-      userUpdate.password_hash = await hashPassword(
-        data.password,
-      );
+      userUpdate.password_hash = await hashPassword(data.password);
     }
 
     return this.userRepository.updateByLogin(login, userUpdate);

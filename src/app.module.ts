@@ -7,6 +7,7 @@ import { DatabaseModule } from './providers/database/database.module';
 import { JwtModule } from '@nestjs/jwt';
 import { FileUploaderModule } from './file-uploader/file-uploader.module';
 import { FilesModule } from './providers/files/files.module';
+import { RedisCacheModule } from './redis-cache/redis-cache.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { FilesModule } from './providers/files/files.module';
       }),
       inject: [ConfigService],
     }),
+    RedisCacheModule,
     DatabaseModule,
     FilesModule,
     UserModule,
