@@ -14,6 +14,7 @@ export interface UserTable {
   password_hash: string;
   age: number;
   description: string | null;
+  balance: Generated<number>;
   created_at: Generated<Date>;
   deleted_at: Date | null;
 }

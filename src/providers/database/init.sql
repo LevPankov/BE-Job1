@@ -9,6 +9,9 @@ CREATE TABLE IF NOT EXISTS users (
     deleted_at TIMESTAMP DEFAULT NULL
 );
 
+ALTER TABLE users 
+ADD COLUMN balance DECIMAL(12,2) NOT NULL DEFAULT 0.00 CHECK (balance >= 0);
+
 CREATE INDEX IF NOT EXISTS idx_users_login ON users(login);
 
 CREATE TABLE IF NOT EXISTS user_avatars (
