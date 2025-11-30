@@ -5,7 +5,7 @@ import { AuthRepository } from './auth.repository';
 
 @Injectable()
 export class RefreshTokenService {
-  constructor(private authRepository: AuthRepository) { }
+  constructor(private authRepository: AuthRepository) {}
 
   generateToken(): string {
     return crypto.randomBytes(40).toString('hex');
@@ -15,10 +15,7 @@ export class RefreshTokenService {
     return crypto.createHash('sha256').update(token).digest('hex');
   }
 
-  async createToken(
-    userId: string,
-    expiresInDays: number = 7,
-  ): Promise<string> {
+  async createToken(userId: string, expiresInDays: number = 7): Promise<string> {
     const token = this.generateToken();
     const tokenHash = this.hashToken(token);
     const expiresAt = new Date();
@@ -41,16 +38,16 @@ export class RefreshTokenService {
     return result || null;
   }
 
-  revokeToken(token: string): void {
+  async revokeToken(token: string): Promise<void> {
     const tokenHash = this.hashToken(token);
-    this.authRepository.revokeToken(tokenHash);
+    return await this.authRepository.revokeToken(tokenHash);
   }
 
-  revokeAllUserTokens(userId: string): void {
-    this.authRepository.revokeAllUserTokens(userId);
+  async revokeAllUserTokens(userId: string): Promise<void> {
+    return await this.authRepository.revokeAllUserTokens(userId);
   }
 
-  cleanupExpiredTokens(): void {
-    this.authRepository.deleteExpiredTokens();
+  async cleanupExpiredTokens(): Promise<void> {
+    return await this.authRepository.deleteExpiredTokens();
   }
 }

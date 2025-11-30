@@ -12,7 +12,7 @@ export class BalanceOperationsController {
   @Post('send')
   @UseGuards(AuthGuard)
   @ApiBearerAuth('JWT-auth')
-  sendMoney(@User('login') login: string, @Body() sendMoneyDto: SendMoneyDto): Promise<void> {
-    return this.balanceOperationsService.sendMoney(login, sendMoneyDto);
+  async sendMoney(@User('login') login: string, @Body() sendMoneyDto: SendMoneyDto): Promise<void> {
+    return await this.balanceOperationsService.sendMoney(login, sendMoneyDto);
   }
 }

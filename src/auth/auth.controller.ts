@@ -11,15 +11,15 @@ import { RefreshTokenResDto } from './dto/refresh-token.res.dto';
 @ApiTags('Authentication')
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) { }
+  constructor(private authService: AuthService) {}
 
   @Post('reg')
   @ApiBody({ type: CreateUserDto })
   @ApiResponse({ status: 201, description: 'Success!' })
   @ApiResponse({ status: 400, description: 'Incorrect data' })
   @ApiResponse({ status: 400, description: 'Login is already exist' })
-  createUser(@Body() createUserDto: CreateUserDto): Promise<void> {
-    return this.authService.createProfile(createUserDto);
+  async createUser(@Body() createUserDto: CreateUserDto): Promise<void> {
+    return await this.authService.createProfile(createUserDto);
   }
 
   @Post('login')
@@ -27,8 +27,8 @@ export class AuthController {
   @ApiResponse({ status: 201, description: 'Return access and refresh tokens' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'User not found' })
-  signIn(@Body() signInDto: SignInDto): Promise<RefreshTokenResDto> {
-    return this.authService.signIn(signInDto.login, signInDto.password);
+  async signIn(@Body() signInDto: SignInDto): Promise<RefreshTokenResDto> {
+    return await this.authService.signIn(signInDto.login, signInDto.password);
   }
 
   @Post('refresh')
@@ -38,8 +38,8 @@ export class AuthController {
     description: 'Refresh access token using refresh token',
   })
   @ApiResponse({ status: 401, description: 'Invalid refresh token' })
-  refresh(@Body() refreshDto: RefreshTokenDto): Promise<RefreshTokenResDto> {
-    return this.authService.refreshTokens(refreshDto.refresh_token);
+  async refresh(@Body() refreshDto: RefreshTokenDto): Promise<RefreshTokenResDto> {
+    return await this.authService.refreshTokens(refreshDto.refresh_token);
   }
 
   @Post('logout')
@@ -47,8 +47,8 @@ export class AuthController {
   @ApiBearerAuth('JWT-auth')
   @ApiBody({ type: RefreshTokenDto })
   @ApiResponse({ status: 201, description: 'Successfully logged out' })
-  logout(@Body() refreshDto: RefreshTokenDto): void {
-    return this.authService.logout(refreshDto.refresh_token);
+  async logout(@Body() refreshDto: RefreshTokenDto): Promise<void> {
+    return await this.authService.logout(refreshDto.refresh_token);
   }
 
   @Post('logout-all')
@@ -58,7 +58,7 @@ export class AuthController {
     status: 201,
     description: 'Successfully logged out from all devices',
   })
-  logoutAll(@User('sub') id: string): void {
-    return this.authService.logoutAll(id);
+  async logoutAll(@User('sub') id: string): Promise<void> {
+    return await this.authService.logoutAll(id);
   }
 }

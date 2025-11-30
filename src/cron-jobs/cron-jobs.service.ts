@@ -14,9 +14,9 @@ export class CronJobsService {
   private readonly logger = new Logger(CronJobsService.name);
 
   @Cron('0 */10 * * * *')
-  setAllBalancesToDefault(): void {
+  async setAllBalancesToDefault(): Promise<void> {
     const balanceSettingDto: BalanceSettingDto = { amount: DEFAULT_AMOUNT };
     this.logger.log('Adding job of setting all balances to ' + DEFAULT_AMOUNT + '$');
-    this.balancesQueue.add('setToDefault', balanceSettingDto);
+    await this.balancesQueue.add('setToDefault', balanceSettingDto);
   }
 }

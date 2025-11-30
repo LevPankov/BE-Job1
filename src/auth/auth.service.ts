@@ -15,7 +15,7 @@ export class AuthService {
     private jwtService: JwtService,
     private configService: ConfigService,
     private refreshTokenService: RefreshTokenService,
-  ) { }
+  ) {}
 
   async createProfile(data: CreateUserDto): Promise<void> {
     const user = await this.authRepository.getByLoginWithDeleted(data.login);
@@ -56,8 +56,7 @@ export class AuthService {
   }
 
   async refreshTokens(refreshToken: string): Promise<RefreshTokenResDto> {
-    const tokenEntity =
-      await this.refreshTokenService.findValidToken(refreshToken);
+    const tokenEntity = await this.refreshTokenService.findValidToken(refreshToken);
     if (!tokenEntity) {
       throw new UnauthorizedException('Invalid refresh token');
     }
@@ -80,12 +79,12 @@ export class AuthService {
     };
   }
 
-  logout(refreshToken: string): void {
-    this.refreshTokenService.revokeToken(refreshToken);
+  async logout(refreshToken: string): Promise<void> {
+    return await this.refreshTokenService.revokeToken(refreshToken);
   }
 
-  logoutAll(userId: string): void {
-    this.refreshTokenService.revokeAllUserTokens(userId);
+  async logoutAll(userId: string): Promise<void> {
+    return await this.refreshTokenService.revokeAllUserTokens(userId);
   }
 
   private generateAccessToken(userId: string, login: string): Promise<string> {

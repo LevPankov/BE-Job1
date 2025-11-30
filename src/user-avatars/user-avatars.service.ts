@@ -2,16 +2,16 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { UploadFilePayloadDto } from '../providers/files/s3/dto/upload-file-payload.dto';
 import { IFileService } from '../providers/files/files.adapter';
 import { RemoveFilePayloadDto } from '../providers/files/s3/dto/remove-file-payload.dto';
-import { FileUploaderRepository } from './file-uploader.repository';
+import { UserAvatarsRepository } from './user-avatars.repository';
 import { NewUserAvatar, UserWithLatestAvatar } from '../providers/database/types';
 import { UserAvatarsResDto } from './dto/user-avatars-res.dto';
 
 const maxAvatarsCount = 5;
 
 @Injectable()
-export class FileUploaderService {
+export class UserAvatarsService {
   constructor(
-    private fileUploaderRepository: FileUploaderRepository,
+    private fileUploaderRepository: UserAvatarsRepository,
     private fileService: IFileService,
   ) {}
 
@@ -25,7 +25,6 @@ export class FileUploaderService {
 
   async uploadAvatar(userId: string, file: Express.Multer.File): Promise<void> {
     const avatarsCount = await this.fileUploaderRepository.getCountOfUserAvatars(userId);
-    console.log(avatarsCount);
     if (avatarsCount >= maxAvatarsCount) {
       throw new BadRequestException(`Too many avatars alredy exist. Max count equals ${maxAvatarsCount}`);
     }
