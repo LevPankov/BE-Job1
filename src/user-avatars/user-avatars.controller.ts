@@ -12,7 +12,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { FileUploaderService } from './file-uploader.service';
+import { UserAvatarsService } from './user-avatars.service';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { AuthGuard } from '../auth/auth.guard';
 import { User } from '../common/decorators/user.decorator';
@@ -20,26 +20,24 @@ import { UserAvatarsResDto } from './dto/user-avatars-res.dto';
 import { UserWithLatestAvatar } from 'src/providers/database/types';
 
 @Controller('file-uploader')
-export class FileUploaderController {
-  constructor(private fileUploaderService: FileUploaderService) {}
+export class UserAvatarsController {
+  constructor(private userAvatarsService: UserAvatarsService) {}
 
   @Get('most-active')
-  getMostActiveUsers(): Promise<UserWithLatestAvatar[]> {
-    return this.fileUploaderService.getMostActiveUsers();
+  async getMostActiveUsers(): Promise<UserWithLatestAvatar[]> {
+    return await this.userAvatarsService.getMostActiveUsers();
   }
 
   @Get('get/avatars')
   @UseGuards(AuthGuard)
   @ApiBearerAuth('JWT-auth')
-  getUserAvatars(@User('sub') userId: string): Promise<UserAvatarsResDto[]> {
-    return this.fileUploaderService.getUserAvatars(userId);
+  async getUserAvatars(@User('sub') userId: string): Promise<UserAvatarsResDto[]> {
+    return await this.userAvatarsService.getUserAvatars(userId);
   }
 
   @Post('upload')
   @UseGuards(AuthGuard)
   @ApiBearerAuth('JWT-auth')
-  //@ApiBody({ type: CreateUserDto })
-  //@ApiResponse({ status: 201, description: 'Success!' })
   @UseInterceptors(FileInterceptor('file'))
   async uploadAvatar(
     @User('sub') userId: string,
@@ -55,26 +53,20 @@ export class FileUploaderController {
     )
     file: Express.Multer.File,
   ): Promise<void> {
-    return this.fileUploaderService.uploadAvatar(userId, file);
+    return this.userAvatarsService.uploadAvatar(userId, file);
   }
 
   @Delete('remove')
   @UseGuards(AuthGuard)
   @ApiBearerAuth('JWT-auth')
-  async removeAvatar(
-    @User('sub') userId: string,
-    @Query('avatarId') avatarId: string,
-  ): Promise<void> {
-    return this.fileUploaderService.removeAvatar(userId, avatarId);
+  async removeAvatar(@User('sub') userId: string, @Query('avatarId') avatarId: string): Promise<void> {
+    return this.userAvatarsService.removeAvatar(userId, avatarId);
   }
 
   @Delete('remove-hard')
   @UseGuards(AuthGuard)
   @ApiBearerAuth('JWT-auth')
-  async removeHardAvatar(
-    @User('sub') userId: string,
-    @Query('avatarId') avatarId: string,
-  ): Promise<void> {
-    return this.fileUploaderService.removeHardAvatar(userId, avatarId);
+  async removeHardAvatar(@User('sub') userId: string, @Query('avatarId') avatarId: string): Promise<void> {
+    return this.userAvatarsService.removeHardAvatar(userId, avatarId);
   }
 }

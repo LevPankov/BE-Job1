@@ -11,6 +11,10 @@ export class BalanceOperationsService {
   private readonly logger = new Logger(BalanceOperationsService.name);
 
   async sendMoney(senderLogin: string, sendMoneyDto: SendMoneyDto): Promise<void> {
+    if (senderLogin == sendMoneyDto.receiverLogin) {
+      this.logger.error('User ' + senderLogin + ' tried send money to himself');
+      throw new BadRequestException("You can't send money to yourself");
+    }
     try {
       const [senderData, receiverData] = await Promise.all([
         this.balanceOperationsRepository.getBankInfoByLogin(senderLogin),

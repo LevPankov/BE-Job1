@@ -83,11 +83,11 @@ export class UserService {
     return this.userRepository.updateByLogin(login, userUpdate);
   }
 
-  removeByLogin(login: string): void {
-    this.userRepository.removeByLogin(login);
+  async removeByLogin(login: string): Promise<void> {
+    return await this.userRepository.removeByLogin(login);
   }
 
-  removeHardByLogin(login: string): void {
-    this.userRepository.removeHardByLogin(login);
+  async removeHardByLogin(login: string): Promise<void> {
+    return await this.userRepository.removeHardByLogin(login);
   }
 }

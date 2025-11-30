@@ -5,7 +5,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import configuration from './config/configuration';
 import { DatabaseModule } from './providers/database/database.module';
 import { JwtModule } from '@nestjs/jwt';
-import { FileUploaderModule } from './file-uploader/file-uploader.module';
+import { UserAvatarsModule } from './user-avatars/user-avatars.module';
 import { FilesModule } from './providers/files/files.module';
 import { RedisCacheModule } from './redis-cache/redis-cache.module';
 import { BalanceOperationsModule } from './balance-operations/balance-operations.module';
@@ -45,7 +45,7 @@ import { BullModule } from '@nestjs/bullmq';
     FilesModule,
     UserModule,
     AuthModule,
-    FileUploaderModule,
+    UserAvatarsModule,
     BalanceOperationsModule,
     CronJobsModule,
   ],

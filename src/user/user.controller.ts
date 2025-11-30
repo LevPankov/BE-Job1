@@ -13,12 +13,12 @@ import { UserInfoResDto } from './dto/user-info.res.dto';
 @ApiResponse({ status: 401, description: 'Unauthorized' })
 @Controller('user')
 export class UserController {
-  constructor(private readonly userService: UserService) { }
+  constructor(private readonly userService: UserService) {}
 
   @Get('get/my')
   @ApiResponse({ status: 200, description: 'Returns user data' })
-  getPofile(@User('login') login: string): Promise<UserInfoResDto> {
-    return this.userService.getByLogin(login);
+  async getPofile(@User('login') login: string): Promise<UserInfoResDto> {
+    return await this.userService.getByLogin(login);
   }
 
   @Get('get/all')
@@ -28,22 +28,16 @@ export class UserController {
     status: 400,
     description: 'Validation failed (numeric string is expected)',
   })
-  getAll(
-    @Query('page', ParseIntPipe) page: number,
-  ): Promise<UserEnteredInfoResDto[]> {
-    return this.userService.getAll(page);
+  async getAll(@Query('page', ParseIntPipe) page: number): Promise<UserEnteredInfoResDto[]> {
+    return await this.userService.getAll(page);
   }
 
   @Get('get')
   @ApiQuery({ name: 'login' })
   @ApiResponse({ status: 200, description: 'User data without password_hash' })
   @ApiResponse({ status: 404, description: 'User not found' })
-  async findProfileByLogin(
-    @Query() userLoginDto: UserLoginDto,
-  ): Promise<UserEnteredInfoResDto> {
-    const { password_hash: _, ...data } = await this.userService.getByLogin(
-      userLoginDto.login,
-    );
+  async findProfileByLogin(@Query() userLoginDto: UserLoginDto): Promise<UserEnteredInfoResDto> {
+    const { password_hash: _, ...data } = await this.userService.getByLogin(userLoginDto.login);
     return data;
   }
 
@@ -51,22 +45,19 @@ export class UserController {
   @ApiBody({ type: UpdateUserDto })
   @ApiResponse({ status: 200, description: 'Success!' })
   @ApiResponse({ status: 400, description: 'Login is incorrect' })
-  updateProfileByLogin(
-    @User('login') login: string,
-    @Body() updateUserDto: UpdateUserDto,
-  ): void {
-    this.userService.updateByLogin(login, updateUserDto);
+  async updateProfileByLogin(@User('login') login: string, @Body() updateUserDto: UpdateUserDto): Promise<void> {
+    return await this.userService.updateByLogin(login, updateUserDto);
   }
 
   @Delete('delete')
   @ApiResponse({ status: 200, description: 'Success!' })
-  deleteProfileByLogin(@User('login') login: string): void {
-    this.userService.removeByLogin(login);
+  async deleteProfileByLogin(@User('login') login: string): Promise<void> {
+    return await this.userService.removeByLogin(login);
   }
 
   @Delete('hard-delete')
   @ApiResponse({ status: 200, description: 'Success!' })
-  hardDeleteProfileByLogin(@User('login') login: string): void {
-    this.userService.removeHardByLogin(login);
+  async hardDeleteProfileByLogin(@User('login') login: string): Promise<void> {
+    return await this.userService.removeHardByLogin(login);
   }
 }
